@@ -1,0 +1,26 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Order document files: max 50MB
+    match /orders/{orderId}/files/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.size < 50 * 1024 * 1024;
+    }
+
+    // Conversion temporary and output files
+    match /conversions/{userId}/{fileName} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User profile images
+    match /profiles/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024;
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "957868857571",
+    "project_id": "pressgo-4913d",
+    "storage_bucket": "pressgo-4913d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:957868857571:android:804f99a461983e9d644dd6",
+        "android_client_info": {
+          "package_name": "com.pressgo.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "957868857571-n28m3897uj254qqa1gkfl8de12dn88gj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8bwSIrUIAUuvLuFMPi3yOrZ6wDs3HMdw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "957868857571-n28m3897uj254qqa1gkfl8de12dn88gj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
