@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors -->
+    <color name="primary">#1A237E</color>
+    <color name="primary_variant">#283593</color>
+    <color name="primary_dark">#0D1757</color>
+    <color name="primary_light">#3F51B5</color>
+    <color name="primary_surface">#E8EAF6</color>
+
+    <!-- Secondary / Teal -->
+    <color name="secondary">#00ACC1</color>
+    <color name="secondary_variant">#0097A7</color>
+    <color name="accent">#26C6DA</color>
+    <color name="accent_light">#B2EBF2</color>
+
+    <!-- On Colors -->
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="on_background">#212121</color>
+    <color name="on_surface">#212121</color>
+    <color name="on_error">#FFFFFF</color>
+
+    <!-- Background &amp; Surface -->
+    <color name="background">#FAFAFA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F5F5F5</color>
+    <color name="surface_container">#EEEEEE</color>
+
+    <!-- Error Colors -->
+    <color name="error">#D32F2F</color>
+    <color name="error_light">#EF5350</color>
+    <color name="error_dark">#B71C1C</color>
+    <color name="error_container">#FFEBEE</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+    <color name="text_disabled">#9E9E9E</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    <color name="text_on_dark">#FFFFFF</color>
+    <color name="text_link">#1A237E</color>
+
+    <!-- Divider &amp; Border -->
+    <color name="divider">#E0E0E0</color>
+    <color name="border">#BDBDBD</color>
+    <color name="border_light">#EEEEEE</color>
+    <color name="separator">#F5F5F5</color>
+
+    <!-- Card -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="card_stroke">#E0E0E0</color>
+    <color name="card_shadow">#1A000000</color>
+
+    <!-- Order Status Colors -->
+    <color name="status_pending">#FF9800</color>
+    <color name="status_pending_bg">#FFF3E0</color>
+    <color name="status_pending_text">#E65100</color>
+
+    <color name="status_accepted">#2196F3</color>
+    <color name="status_accepted_bg">#E3F2FD</color>
+    <color name="status_accepted_text">#0D47A1</color>
+
+    <color name="status_printing">#9C27B0</color>
+    <color name="status_printing_bg">#F3E5F5</color>
+    <color name="status_printing_text">#4A148C</color>
+
+    <color name="status_ready">#4CAF50</color>
+    <color name="status_ready_bg">#E8F5E9</color>
+    <color name="status_ready_text">#1B5E20</color>
+
+    <color name="status_completed">#607D8B</color>
+    <color name="status_completed_bg">#ECEFF1</color>
+    <color name="status_completed_text">#263238</color>
+
+    <color name="status_rejected">#F44336</color>
+    <color name="status_rejected_bg">#FFEBEE</color>
+    <color name="status_rejected_text">#B71C1C</color>
+
+    <color name="status_cancelled">#9E9E9E</color>
+    <color name="status_cancelled_bg">#F5F5F5</color>
+    <color name="status_cancelled_text">#424242</color>
+
+    <!-- Semantic Colors -->
+    <color name="success">#388E3C</color>
+    <color name="success_light">#4CAF50</color>
+    <color name="success_dark">#1B5E20</color>
+    <color name="success_bg">#E8F5E9</color>
+
+    <color name="warning">#F57C00</color>
+    <color name="warning_light">#FFB74D</color>
+    <color name="warning_dark">#E65100</color>
+    <color name="warning_bg">#FFF8E1</color>
+
+    <color name="danger">#D32F2F</color>
+    <color name="danger_light">#EF9A9A</color>
+    <color name="danger_dark">#B71C1C</color>
+    <color name="danger_bg">#FFEBEE</color>
+
+    <color name="info">#0288D1</color>
+    <color name="info_light">#29B6F6</color>
+    <color name="info_bg">#E1F5FE</color>
+
+    <!-- Payment Status Colors -->
+    <color name="payment_paid">#388E3C</color>
+    <color name="payment_unpaid">#F57C00</color>
+    <color name="payment_failed">#D32F2F</color>
+    <color name="payment_refunded">#7B1FA2</color>
+    <color name="payment_pending">#FF9800</color>
+
+    <!-- Admin Accent Colors -->
+    <color name="admin_accent_1">#3F51B5</color>
+    <color name="admin_accent_2">#009688</color>
+    <color name="admin_accent_3">#FF5722</color>
+    <color name="admin_accent_4">#795548</color>
+    <color name="admin_chart_1">#1A237E</color>
+    <color name="admin_chart_2">#00ACC1</color>
+    <color name="admin_chart_3">#FF9800</color>
+    <color name="admin_chart_4">#4CAF50</color>
+    <color name="admin_chart_5">#9C27B0</color>
+
+    <!-- Overlay / Scrim -->
+    <color name="scrim">#99000000</color>
+    <color name="overlay_light">#1AFFFFFF</color>
+    <color name="overlay_dark">#14000000</color>
+
+    <!-- Shimmer / Skeleton -->
+    <color name="shimmer_base">#E0E0E0</color>
+    <color name="shimmer_highlight">#F5F5F5</color>
+
+    <!-- Splash Gradient -->
+    <color name="splash_start">#1A237E</color>
+    <color name="splash_end">#283593</color>
+
+    <!-- Icon Tints -->
+    <color name="icon_primary">#1A237E</color>
+    <color name="icon_secondary">#757575</color>
+    <color name="icon_on_primary">#FFFFFF</color>
+    <color name="icon_disabled">#BDBDBD</color>
+
+    <!-- Bottom Navigation -->
+    <color name="bottom_nav_selected">#1A237E</color>
+    <color name="bottom_nav_unselected">#757575</color>
+
+    <!-- Chip Colors -->
+    <color name="chip_bg_default">#E8EAF6</color>
+    <color name="chip_text_default">#1A237E</color>
+    <color name="chip_bg_selected">#1A237E</color>
+    <color name="chip_text_selected">#FFFFFF</color>
+
+    <!-- Progress / Track -->
+    <color name="progress_track">#E0E0E0</color>
+    <color name="progress_indicator">#00ACC1</color>
+
+    <!-- Transparent -->
+    <color name="transparent">#00000000</color>
+
+    <!-- White / Black -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="black_54">#8A000000</color>
+    <color name="black_12">#1F000000</color>
+</resources>

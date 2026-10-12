@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- StatusBadgeView Attributes -->
+    <declare-styleable name="StatusBadgeView">
+        <attr name="badgeText" format="string" />
+        <attr name="badgeColor" format="color" />
+        <attr name="badgeTextColor" format="color" />
+        <attr name="badgeBackgroundColor" format="color" />
+        <attr name="badgeCornerRadius" format="dimension" />
+        <attr name="badgeTextSize" format="dimension" />
+        <attr name="badgePaddingHorizontal" format="dimension" />
+        <attr name="badgePaddingVertical" format="dimension" />
+        <attr name="badgeStatus" format="enum">
+            <enum name="pending" value="0" />
+            <enum name="accepted" value="1" />
+            <enum name="printing" value="2" />
+            <enum name="ready_for_pickup" value="3" />
+            <enum name="completed" value="4" />
+            <enum name="rejected" value="5" />
+            <enum name="cancelled" value="6" />
+        </attr>
+    </declare-styleable>
+
+    <!-- OrderCardView Attributes -->
+    <declare-styleable name="OrderCardView">
+        <attr name="orderId" format="string" />
+        <attr name="orderStatus" format="enum">
+            <enum name="pending" value="0" />
+            <enum name="accepted" value="1" />
+            <enum name="printing" value="2" />
+            <enum name="ready_for_pickup" value="3" />
+            <enum name="completed" value="4" />
+            <enum name="rejected" value="5" />
+            <enum name="cancelled" value="6" />
+        </attr>
+        <attr name="orderAmount" format="float" />
+        <attr name="orderDate" format="string" />
+        <attr name="showActions" format="boolean" />
+    </declare-styleable>
+
+    <!-- ProgressStepView Attributes -->
+    <declare-styleable name="ProgressStepView">
+        <attr name="stepCount" format="integer" />
+        <attr name="currentStep" format="integer" />
+        <attr name="stepActiveColor" format="color" />
+        <attr name="stepInactiveColor" format="color" />
+        <attr name="stepCompletedColor" format="color" />
+        <attr name="stepLineColor" format="color" />
+        <attr name="stepSize" format="dimension" />
+        <attr name="stepLineWidth" format="dimension" />
+        <attr name="showStepLabels" format="boolean" />
+    </declare-styleable>
+
+    <!-- StatCardView Attributes -->
+    <declare-styleable name="StatCardView">
+        <attr name="statTitle" format="string" />
+        <attr name="statValue" format="string" />
+        <attr name="statIcon" format="reference" />
+        <attr name="statIconTint" format="color" />
+        <attr name="statCardColor" format="color" />
+        <attr name="statValueColor" format="color" />
+        <attr name="showTrend" format="boolean" />
+        <attr name="trendUp" format="boolean" />
+        <attr name="trendPercent" format="float" />
+    </declare-styleable>
+
+    <!-- PriceBreakdownView Attributes -->
+    <declare-styleable name="PriceBreakdownView">
+        <attr name="showDivider" format="boolean" />
+        <attr name="dividerColor" format="color" />
+        <attr name="labelTextColor" format="color" />
+        <attr name="valueTextColor" format="color" />
+        <attr name="totalTextColor" format="color" />
+        <attr name="totalLabelColor" format="color" />
+    </declare-styleable>
+
+    <!-- FilePreviewView Attributes -->
+    <declare-styleable name="FilePreviewView">
+        <attr name="fileType" format="enum">
+            <enum name="pdf" value="0" />
+            <enum name="doc" value="1" />
+            <enum name="docx" value="2" />
+            <enum name="image" value="3" />
+            <enum name="txt" value="4" />
+            <enum name="unknown" value="5" />
+        </attr>
+        <attr name="fileName" format="string" />
+        <attr name="fileSize" format="string" />
+        <attr name="showRemoveButton" format="boolean" />
+        <attr name="showPageCount" format="boolean" />
+    </declare-styleable>
+
+    <!-- TimelineStepView Attributes -->
+    <declare-styleable name="TimelineStepView">
+        <attr name="timelineTitle" format="string" />
+        <attr name="timelineSubtitle" format="string" />
+        <attr name="timelineTime" format="string" />
+        <attr name="timelineCompleted" format="boolean" />
+        <attr name="timelineActive" format="boolean" />
+        <attr name="timelineDotColor" format="color" />
+        <attr name="timelineLineColor" format="color" />
+        <attr name="isLastStep" format="boolean" />
+    </declare-styleable>
+
+    <!-- ShopCardView Attributes -->
+    <declare-styleable name="ShopCardView">
+        <attr name="shopName" format="string" />
+        <attr name="shopAddress" format="string" />
+        <attr name="shopIsOpen" format="boolean" />
+        <attr name="shopRating" format="float" />
+        <attr name="shopDistance" format="string" />
+    </declare-styleable>
+
+    <!-- EmptyStateView Attributes -->
+    <declare-styleable name="EmptyStateView">
+        <attr name="emptyIcon" format="reference" />
+        <attr name="emptyTitle" format="string" />
+        <attr name="emptyDescription" format="string" />
+        <attr name="emptyActionText" format="string" />
+        <attr name="showAction" format="boolean" />
+        <attr name="iconTint" format="color" />
+    </declare-styleable>
+
+    <!-- PrintSettingsView Attributes -->
+    <declare-styleable name="PrintSettingsView">
+        <attr name="defaultColorMode" format="enum">
+            <enum name="bw" value="0" />
+            <enum name="color" value="1" />
+        </attr>
+        <attr name="defaultPaperSize" format="enum">
+            <enum name="a4" value="0" />
+            <enum name="a3" value="1" />
+            <enum name="letter" value="2" />
+            <enum name="legal" value="3" />
+        </attr>
+        <attr name="defaultSides" format="enum">
+            <enum name="single" value="0" />
+            <enum name="double_sided" value="1" />
+        </attr>
+        <attr name="defaultOrientation" format="enum">
+            <enum name="portrait" value="0" />
+            <enum name="landscape" value="1" />
+        </attr>
+        <attr name="defaultCopies" format="integer" />
+        <attr name="maxCopies" format="integer" />
+    </declare-styleable>
+
+    <!-- Custom font attributes -->
+    <attr name="fontWeightLight" format="reference" />
+    <attr name="fontWeightRegular" format="reference" />
+    <attr name="fontWeightMedium" format="reference" />
+    <attr name="fontWeightBold" format="reference" />
+
+    <!-- Common reusable attrs -->
+    <attr name="cornerRadius" format="dimension" />
+    <attr name="strokeWidth" format="dimension" />
+    <attr name="strokeColor" format="color" />
+    <attr name="elevationLevel" format="dimension" />
+    <attr name="rippleColor" format="color" />
+</resources>

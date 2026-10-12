@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">PressGo</string>
+    <string name="app_tagline">Campus Printing, Simplified</string>
+
+    <!-- Common Actions -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_submit">Submit</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_close">Close</string>
+    <string name="action_back">Back</string>
+    <string name="action_next">Next</string>
+    <string name="action_done">Done</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_share">Share</string>
+    <string name="action_download">Download</string>
+    <string name="action_upload">Upload</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_search">Search</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_view_all">View All</string>
+    <string name="action_select">Select</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_logout">Log Out</string>
+    <string name="action_login">Log In</string>
+    <string name="action_register">Register</string>
+    <string name="action_sign_up">Sign Up</string>
+    <string name="action_sign_in">Sign In</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_print">Print</string>
+    <string name="action_preview">Preview</string>
+    <string name="action_add">Add</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_yes">Yes</string>
+    <string name="action_no">No</string>
+    <string name="action_got_it">Got It</string>
+    <string name="action_enable">Enable</string>
+    <string name="action_disable">Disable</string>
+    <string name="action_accept">Accept</string>
+    <string name="action_reject">Reject</string>
+    <string name="action_start_printing">Start Printing</string>
+    <string name="action_mark_ready">Mark as Ready</string>
+    <string name="action_complete">Complete</string>
+    <string name="action_view_details">View Details</string>
+    <string name="action_track_order">Track Order</string>
+    <string name="action_place_order">Place Order</string>
+    <string name="action_new_order">New Order</string>
+    <string name="action_scan_qr">Scan QR Code</string>
+    <string name="action_generate_qr">Generate QR</string>
+    <string name="action_pick_file">Pick File</string>
+    <string name="action_take_photo">Take Photo</string>
+    <string name="action_choose_gallery">Choose from Gallery</string>
+
+    <!-- Common States -->
+    <string name="state_loading">Loading…</string>
+    <string name="state_please_wait">Please wait…</string>
+    <string name="state_processing">Processing…</string>
+    <string name="state_saving">Saving…</string>
+    <string name="state_uploading">Uploading…</string>
+    <string name="state_downloading">Downloading…</string>
+    <string name="state_converting">Converting…</string>
+    <string name="state_compressing">Compressing…</string>
+    <string name="state_no_data">No data available</string>
+    <string name="state_no_internet">No internet connection</string>
+    <string name="state_empty">Nothing here yet</string>
+
+    <!-- Common Messages -->
+    <string name="msg_success">Operation completed successfully.</string>
+    <string name="msg_error_generic">Something went wrong. Please try again.</string>
+    <string name="msg_error_network">Network error. Check your connection.</string>
+    <string name="msg_error_server">Server error. Please try again later.</string>
+    <string name="msg_error_unknown">An unknown error occurred.</string>
+    <string name="msg_saved">Changes saved.</string>
+    <string name="msg_deleted">Deleted successfully.</string>
+    <string name="msg_confirm_delete">Are you sure you want to delete this? This action cannot be undone.</string>
+    <string name="msg_confirm_logout">Are you sure you want to log out?</string>
+    <string name="msg_no_internet">Please check your internet connection and try again.</string>
+    <string name="msg_session_expired">Your session has expired. Please log in again.</string>
+    <string name="msg_feature_unavailable">This feature is not available yet.</string>
+    <string name="msg_permission_denied">Permission denied. Please grant the required permissions in Settings.</string>
+    <string name="msg_file_too_large">File is too large. Maximum allowed size is %1$s MB.</string>
+    <string name="msg_unsupported_format">Unsupported file format.</string>
+    <string name="msg_copied_to_clipboard">Copied to clipboard.</string>
+    <string name="msg_link_opened">Opening link…</string>
+
+    <!-- Auth Screens -->
+    <string name="title_welcome">Welcome to PressGo</string>
+    <string name="title_login">Sign In</string>
+    <string name="title_register">Create Account</string>
+    <string name="title_forgot_password">Forgot Password</string>
+    <string name="title_reset_password">Reset Password</string>
+    <string name="title_verify_email">Verify Your Email</string>
+    <string name="title_phone_verify">Phone Verification</string>
+
+    <string name="hint_email">Email address</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_confirm_password">Confirm password</string>
+    <string name="hint_full_name">Full name</string>
+    <string name="hint_phone">Phone number</string>
+    <string name="hint_student_id">Student ID (optional)</string>
+    <string name="hint_otp">Enter OTP</string>
+    <string name="hint_new_password">New password</string>
+
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="label_phone">Phone Number</string>
+    <string name="label_student_id">Student ID</string>
+    <string name="label_role">Account Type</string>
+    <string name="label_role_customer">Customer</string>
+    <string name="label_role_admin">Admin / Shop Owner</string>
+
+    <string name="text_forgot_password">Forgot password?</string>
+    <string name="text_no_account">Don\'t have an account? <b>Sign Up</b></string>
+    <string name="text_have_account">Already have an account? <b>Sign In</b></string>
+    <string name="text_terms_privacy">By signing up, you agree to our <b>Terms of Service</b> and <b>Privacy Policy</b>.</string>
+    <string name="text_password_reset_sent">A password reset link has been sent to your email address.</string>
+    <string name="text_verify_email_sent">A verification email has been sent to %1$s. Please verify before logging in.</string>
+    <string name="text_resend_otp">Resend OTP in %1$ds</string>
+    <string name="text_resend_otp_now">Resend OTP</string>
+    <string name="text_otp_sent_to">OTP sent to %1$s</string>
+
+    <string name="msg_login_success">Welcome back!</string>
+    <string name="msg_register_success">Account created! Please verify your email.</string>
+    <string name="msg_logout_success">Logged out successfully.</string>
+    <string name="msg_password_reset_sent">Password reset email sent.</string>
+    <string name="msg_email_not_verified">Please verify your email before logging in.</string>
+    <string name="msg_invalid_credentials">Invalid email or password.</string>
+    <string name="msg_account_disabled">Your account has been disabled. Contact support.</string>
+    <string name="msg_email_already_used">This email is already registered.</string>
+
+    <!-- Customer Dashboard -->
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_customer_dashboard">My Dashboard</string>
+    <string name="label_hello_user">Hello, %1$s!</string>
+    <string name="label_quick_actions">Quick Actions</string>
+    <string name="label_recent_orders">Recent Orders</string>
+    <string name="label_active_orders">Active Orders</string>
+    <string name="label_my_orders">My Orders</string>
+    <string name="label_order_count">%1$d Orders</string>
+    <string name="label_no_active_orders">No active orders</string>
+    <string name="label_no_recent_orders">No recent orders</string>
+    <string name="btn_new_print_order">New Print Order</string>
+    <string name="btn_convert_file">Convert File</string>
+    <string name="btn_compress_pdf">Compress PDF</string>
+    <string name="btn_track_order">Track Order</string>
+    <string name="btn_view_all_orders">View All Orders</string>
+    <string name="label_total_orders">Total Orders</string>
+    <string name="label_pending_orders">Pending</string>
+    <string name="label_completed_orders">Completed</string>
+    <string name="label_total_spent">Total Spent</string>
+    <string name="label_wallet_balance">Wallet Balance</string>
+
+    <!-- Customer Orders -->
+    <string name="title_orders">Orders</string>
+    <string name="title_order_details">Order Details</string>
+    <string name="title_new_order">New Print Order</string>
+    <string name="title_order_tracking">Order Tracking</string>
+    <string name="title_order_history">Order History</string>
+    <string name="label_order_id">Order ID</string>
+    <string name="label_order_id_value">Order #%1$s</string>
+    <string name="label_order_date">Date</string>
+    <string name="label_order_time">Time</string>
+    <string name="label_order_status">Status</string>
+    <string name="label_order_total">Total</string>
+    <string name="label_order_items">Items</string>
+    <string name="label_order_notes">Notes / Special Instructions</string>
+    <string name="hint_order_notes">Add any special instructions (optional)</string>
+    <string name="label_select_shop">Select Print Shop</string>
+    <string name="label_selected_shop">Print Shop</string>
+    <string name="label_no_shops_available">No print shops available nearby.</string>
+    <string name="label_files_to_print">Files to Print</string>
+    <string name="label_add_files">Add Files</string>
+    <string name="label_file_name">File Name</string>
+    <string name="label_file_size">File Size</string>
+    <string name="label_file_pages">Pages</string>
+    <string name="label_no_files_selected">No files selected</string>
+    <string name="label_print_settings">Print Settings</string>
+    <string name="label_copies">Copies</string>
+    <string name="label_copies_value">%1$d copies</string>
+    <string name="label_paper_size">Paper Size</string>
+    <string name="label_color_mode">Color Mode</string>
+    <string name="label_side_mode">Sides</string>
+    <string name="label_orientation">Orientation</string>
+    <string name="label_print_summary">Print Summary</string>
+    <string name="label_price_per_page">Price per page</string>
+    <string name="label_total_pages">Total Pages</string>
+    <string name="label_total_amount">Total Amount</string>
+    <string name="label_estimated_time">Estimated Time</string>
+    <string name="label_estimated_time_value">~%1$d min</string>
+    <string name="label_payment_method">Payment Method</string>
+    <string name="label_pickup_token">Pickup Token</string>
+    <string name="label_pickup_qr">Show QR at counter</string>
+    <string name="label_order_placed_at">Placed at %1$s</string>
+    <string name="label_order_accepted_at">Accepted at %1$s</string>
+    <string name="label_order_completed_at">Completed at %1$s</string>
+    <string name="msg_order_placed">Order placed successfully!</string>
+    <string name="msg_order_accepted">Your order has been accepted.</string>
+    <string name="msg_order_ready">Your order is ready for pickup!</string>
+    <string name="msg_order_completed">Order completed. Thank you!</string>
+    <string name="msg_order_rejected">Your order was rejected. Check details.</string>
+    <string name="msg_order_cancelled">Order has been cancelled.</string>
+    <string name="msg_no_orders">No orders found.</string>
+    <string name="msg_no_orders_desc">Place your first print order to get started!</string>
+    <string name="msg_confirm_cancel_order">Are you sure you want to cancel this order?</string>
+    <string name="action_cancel_order">Cancel Order</string>
+    <string name="action_reorder">Reorder</string>
+
+    <!-- Print Settings Values -->
+    <string name="print_color">Color</string>
+    <string name="print_bw">Black &amp; White</string>
+    <string name="print_a4">A4</string>
+    <string name="print_a3">A3</string>
+    <string name="print_letter">Letter</string>
+    <string name="print_legal">Legal</string>
+    <string name="print_single_sided">Single Sided</string>
+    <string name="print_double_sided">Double Sided</string>
+    <string name="print_portrait">Portrait</string>
+    <string name="print_landscape">Landscape</string>
+    <string name="print_pages_all">All Pages</string>
+    <string name="print_pages_range">Page Range</string>
+    <string name="hint_page_range">e.g. 1-3, 5, 7-9</string>
+    <string name="label_quality">Quality</string>
+    <string name="print_quality_draft">Draft</string>
+    <string name="print_quality_normal">Normal</string>
+    <string name="print_quality_high">High</string>
+
+    <!-- Order Status -->
+    <string name="status_pending">Pending</string>
+    <string name="status_accepted">Accepted</string>
+    <string name="status_printing">Printing</string>
+    <string name="status_ready_for_pickup">Ready for Pickup</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_rejected">Rejected</string>
+    <string name="status_cancelled">Cancelled</string>
+    <string name="status_all">All</string>
+
+    <string name="status_desc_pending">Your order is waiting to be accepted by the shop.</string>
+    <string name="status_desc_accepted">Shop has accepted your order and will begin printing soon.</string>
+    <string name="status_desc_printing">Your documents are currently being printed.</string>
+    <string name="status_desc_ready_for_pickup">Your prints are ready! Head to the shop with your QR token.</string>
+    <string name="status_desc_completed">Order picked up. Enjoy your prints!</string>
+    <string name="status_desc_rejected">Order was rejected. Reason: %1$s</string>
+    <string name="status_desc_cancelled">Order was cancelled.</string>
+
+    <!-- Payment Strings -->
+    <string name="payment_cash">Cash on Pickup</string>
+    <string name="payment_wallet">Wallet</string>
+    <string name="payment_upi">UPI</string>
+    <string name="payment_status_unpaid">Unpaid</string>
+    <string name="payment_status_paid">Paid</string>
+    <string name="payment_status_failed">Failed</string>
+    <string name="payment_status_refunded">Refunded</string>
+    <string name="payment_status_pending">Pending</string>
+    <string name="label_payment_status">Payment Status</string>
+    <string name="label_amount_paid">Amount Paid</string>
+    <string name="label_amount_due">Amount Due</string>
+    <string name="label_refund_amount">Refund Amount</string>
+    <string name="msg_payment_success">Payment successful!</string>
+    <string name="msg_payment_failed">Payment failed. Please try again.</string>
+    <string name="msg_refund_initiated">Refund has been initiated.</string>
+    <string name="currency_symbol">BDT </string>
+    <string name="price_format">BDT %1$.2f</string>
+
+    <!-- File Conversion -->
+    <string name="title_convert">Convert</string>
+    <string name="title_convert_file">Convert File</string>
+    <string name="title_conversion_result">Conversion Result</string>
+    <string name="label_convert_from">From</string>
+    <string name="label_convert_to">To</string>
+    <string name="label_conversion_format">Output Format</string>
+    <string name="label_select_file">Select File</string>
+    <string name="label_selected_file">Selected File</string>
+    <string name="label_no_file_selected">No file selected</string>
+    <string name="label_conversion_options">Conversion Options</string>
+    <string name="btn_start_conversion">Start Conversion</string>
+    <string name="label_converting">Converting…</string>
+    <string name="msg_conversion_success">File converted successfully!</string>
+    <string name="msg_conversion_failed">Conversion failed. Please try again.</string>
+    <string name="msg_conversion_progress">Conversion in progress: %1$d%%</string>
+    <string name="label_output_file">Output File</string>
+    <string name="btn_download_converted">Download Converted File</string>
+    <string name="btn_print_converted">Print Converted File</string>
+    <string name="format_pdf">PDF</string>
+    <string name="format_docx">DOCX</string>
+    <string name="format_jpg">JPG</string>
+    <string name="format_png">PNG</string>
+    <string name="format_txt">TXT</string>
+    <string name="label_supported_formats">Supported: PDF, DOCX, JPG, PNG</string>
+    <string name="label_conversion_history">Conversion History</string>
+    <string name="label_no_conversions">No conversions yet</string>
+
+    <!-- File Compression -->
+    <string name="title_compress">Compress</string>
+    <string name="title_compress_pdf">Compress PDF</string>
+    <string name="title_compression_result">Compression Result</string>
+    <string name="label_compression_level">Compression Level</string>
+    <string name="label_compress_low">Low (Better Quality)</string>
+    <string name="label_compress_medium">Medium (Balanced)</string>
+    <string name="label_compress_high">High (Smaller Size)</string>
+    <string name="label_original_size">Original Size</string>
+    <string name="label_compressed_size">Compressed Size</string>
+    <string name="label_size_reduction">Size Reduced by %1$d%%</string>
+    <string name="btn_start_compression">Start Compression</string>
+    <string name="msg_compression_success">PDF compressed successfully!</string>
+    <string name="msg_compression_failed">Compression failed. Please try again.</string>
+    <string name="msg_no_compression_needed">File is already optimized.</string>
+    <string name="msg_pdf_only">Only PDF files can be compressed.</string>
+    <string name="label_compression_history">Compression History</string>
+    <string name="label_no_compressions">No compressions yet</string>
+    <string name="btn_download_compressed">Download Compressed PDF</string>
+
+    <!-- Order Tracking -->
+    <string name="title_tracking">Track Order</string>
+    <string name="label_track_by_id">Track by Order ID</string>
+    <string name="hint_enter_order_id">Enter Order ID</string>
+    <string name="btn_track">Track</string>
+    <string name="label_tracking_timeline">Order Timeline</string>
+    <string name="label_order_placed">Order Placed</string>
+    <string name="label_order_accepted">Order Accepted</string>
+    <string name="label_order_printing">Printing</string>
+    <string name="label_order_ready">Ready for Pickup</string>
+    <string name="label_order_completed">Completed</string>
+    <string name="label_estimated_ready">Estimated Ready Time</string>
+    <string name="label_qr_token">QR Token</string>
+    <string name="label_show_qr_instruction">Show this QR code at the print shop counter to collect your order.</string>
+    <string name="msg_order_not_found">Order not found. Check the Order ID.</string>
+
+    <!-- Notifications -->
+    <string name="title_notifications">Notifications</string>
+    <string name="label_no_notifications">No notifications</string>
+    <string name="label_mark_all_read">Mark All as Read</string>
+    <string name="label_notification_settings">Notification Settings</string>
+    <string name="label_push_notifications">Push Notifications</string>
+    <string name="label_order_updates">Order Updates</string>
+    <string name="label_promo_notifications">Promotions &amp; Offers</string>
+    <string name="label_just_now">Just now</string>
+    <string name="label_minutes_ago">%1$d min ago</string>
+    <string name="label_hours_ago">%1$d hr ago</string>
+    <string name="label_days_ago">%1$d days ago</string>
+    <string name="label_yesterday">Yesterday</string>
+
+    <string name="notif_channel_orders_name">Order Updates</string>
+    <string name="notif_channel_orders_desc">Notifications about your print order status</string>
+    <string name="notif_channel_promo_name">Promotions</string>
+    <string name="notif_channel_promo_desc">Promotions and special offers from print shops</string>
+    <string name="notif_channel_admin_name">Admin Alerts</string>
+    <string name="notif_channel_admin_desc">New orders and shop management alerts</string>
+    <string name="notif_channel_general_name">General</string>
+    <string name="notif_channel_general_desc">General app notifications</string>
+
+    <string name="notif_title_order_placed">Order Placed!</string>
+    <string name="notif_body_order_placed">Your order #%1$s has been placed successfully.</string>
+    <string name="notif_title_order_accepted">Order Accepted</string>
+    <string name="notif_body_order_accepted">Your order #%1$s has been accepted by %2$s.</string>
+    <string name="notif_title_order_printing">Order Printing</string>
+    <string name="notif_body_order_printing">Your order #%1$s is now being printed.</string>
+    <string name="notif_title_order_ready">Order Ready!</string>
+    <string name="notif_body_order_ready">Your order #%1$s is ready for pickup at %2$s.</string>
+    <string name="notif_title_order_completed">Order Completed</string>
+    <string name="notif_body_order_completed">Your order #%1$s has been completed. Thank you!</string>
+    <string name="notif_title_order_rejected">Order Rejected</string>
+    <string name="notif_body_order_rejected">Your order #%1$s was rejected. Tap to view details.</string>
+    <string name="notif_title_new_order">New Order!</string>
+    <string name="notif_body_new_order">New order #%1$s received from %2$s.</string>
+
+    <!-- Customer Profile -->
+    <string name="title_profile">Profile</string>
+    <string name="title_edit_profile">Edit Profile</string>
+    <string name="title_change_password">Change Password</string>
+    <string name="title_settings">Settings</string>
+    <string name="title_help_support">Help &amp; Support</string>
+    <string name="title_about">About PressGo</string>
+    <string name="title_privacy_policy">Privacy Policy</string>
+    <string name="title_terms_of_service">Terms of Service</string>
+
+    <string name="label_account_info">Account Info</string>
+    <string name="label_name">Name</string>
+    <string name="label_member_since">Member since %1$s</string>
+    <string name="label_app_version">App Version</string>
+    <string name="label_contact_us">Contact Us</string>
+    <string name="label_faq">FAQ</string>
+    <string name="label_report_issue">Report an Issue</string>
+    <string name="label_dark_mode">Dark Mode</string>
+    <string name="label_language">Language</string>
+    <string name="label_security">Security</string>
+    <string name="label_danger_zone">Danger Zone</string>
+    <string name="label_delete_account">Delete Account</string>
+    <string name="msg_delete_account_confirm">This will permanently delete your account and all associated data. This cannot be undone.</string>
+    <string name="hint_current_password">Current password</string>
+    <string name="msg_profile_updated">Profile updated successfully.</string>
+    <string name="msg_password_changed">Password changed successfully.</string>
+    <string name="msg_profile_photo_updated">Profile photo updated.</string>
+
+    <!-- Admin Dashboard -->
+    <string name="title_admin_dashboard">Admin Dashboard</string>
+    <string name="title_shop_overview">Shop Overview</string>
+    <string name="label_todays_orders">Today\'s Orders</string>
+    <string name="label_todays_revenue">Today\'s Revenue</string>
+    <string name="label_pending_queue">Pending Queue</string>
+    <string name="label_active_queue">Active Queue</string>
+    <string name="label_shop_status">Shop Status</string>
+    <string name="label_shop_open">Open</string>
+    <string name="label_shop_closed">Closed</string>
+    <string name="label_shop_busy">Busy</string>
+    <string name="label_total_revenue">Total Revenue</string>
+    <string name="label_weekly_revenue">Weekly Revenue</string>
+    <string name="label_monthly_revenue">Monthly Revenue</string>
+    <string name="label_total_customers">Total Customers</string>
+    <string name="label_avg_order_value">Avg. Order Value</string>
+    <string name="label_completion_rate">Completion Rate</string>
+    <string name="btn_toggle_shop_open">Set Shop Open</string>
+    <string name="btn_toggle_shop_closed">Set Shop Closed</string>
+    <string name="msg_shop_opened">Shop is now open for orders.</string>
+    <string name="msg_shop_closed">Shop is now closed.</string>
+
+    <!-- Admin Order Management -->
+    <string name="title_order_management">Order Management</string>
+    <string name="title_order_queue">Order Queue</string>
+    <string name="label_queue_empty">No orders in queue</string>
+    <string name="label_order_from">Order from %1$s</string>
+    <string name="label_reject_reason">Reason for Rejection</string>
+    <string name="hint_reject_reason">Enter reason (optional)</string>
+    <string name="msg_confirm_accept_order">Accept this order from %1$s?</string>
+    <string name="msg_confirm_reject_order">Reject this order from %1$s?</string>
+    <string name="msg_confirm_start_printing">Start printing order #%1$s?</string>
+    <string name="msg_confirm_mark_ready">Mark order #%1$s as ready for pickup?</string>
+    <string name="msg_confirm_complete_order">Mark order #%1$s as completed?</string>
+    <string name="msg_order_status_updated">Order status updated.</string>
+    <string name="label_scan_to_complete">Scan customer QR to complete order</string>
+    <string name="label_filter_by_status">Filter by Status</string>
+    <string name="label_filter_by_date">Filter by Date</string>
+    <string name="label_sort_by">Sort by</string>
+    <string name="label_sort_newest">Newest First</string>
+    <string name="label_sort_oldest">Oldest First</string>
+    <string name="label_sort_amount_high">Amount: High to Low</string>
+    <string name="label_sort_amount_low">Amount: Low to High</string>
+
+    <!-- Admin Printers -->
+    <string name="title_printers">Printers</string>
+    <string name="title_add_printer">Add Printer</string>
+    <string name="title_edit_printer">Edit Printer</string>
+    <string name="title_printer_details">Printer Details</string>
+    <string name="label_printer_name">Printer Name</string>
+    <string name="label_printer_model">Model</string>
+    <string name="label_printer_status">Status</string>
+    <string name="label_printer_online">Online</string>
+    <string name="label_printer_offline">Offline</string>
+    <string name="label_printer_error">Error</string>
+    <string name="label_printer_maintenance">Maintenance</string>
+    <string name="label_printer_color_capable">Color Capable</string>
+    <string name="label_printer_duplex">Duplex (Double-sided)</string>
+    <string name="label_supported_sizes">Supported Paper Sizes</string>
+    <string name="hint_printer_name">e.g. HP LaserJet 1020</string>
+    <string name="label_no_printers">No printers configured</string>
+    <string name="msg_printer_added">Printer added successfully.</string>
+    <string name="msg_printer_updated">Printer updated.</string>
+    <string name="msg_printer_deleted">Printer removed.</string>
+    <string name="msg_confirm_delete_printer">Delete this printer?</string>
+
+    <!-- Admin Inventory -->
+    <string name="title_inventory">Inventory</string>
+    <string name="title_paper_stock">Paper Stock</string>
+    <string name="title_ink_levels">Ink Levels</string>
+    <string name="label_paper_a4">A4 Paper</string>
+    <string name="label_paper_a3">A3 Paper</string>
+    <string name="label_paper_letter">Letter Paper</string>
+    <string name="label_ink_black">Black Ink</string>
+    <string name="label_ink_cyan">Cyan Ink</string>
+    <string name="label_ink_magenta">Magenta Ink</string>
+    <string name="label_ink_yellow">Yellow Ink</string>
+    <string name="label_stock_level">Stock Level</string>
+    <string name="label_low_stock">Low Stock</string>
+    <string name="label_out_of_stock">Out of Stock</string>
+    <string name="label_in_stock">In Stock</string>
+    <string name="label_restock">Restock</string>
+    <string name="hint_quantity">Quantity</string>
+    <string name="msg_stock_updated">Stock updated.</string>
+    <string name="msg_low_stock_warning">%1$s is running low. Please restock.</string>
+
+    <!-- Admin Pricing -->
+    <string name="title_pricing">Pricing</string>
+    <string name="title_pricing_settings">Pricing Settings</string>
+    <string name="label_price_bw_a4">B&amp;W A4 (per page)</string>
+    <string name="label_price_color_a4">Color A4 (per page)</string>
+    <string name="label_price_bw_a3">B&amp;W A3 (per page)</string>
+    <string name="label_price_color_a3">Color A3 (per page)</string>
+    <string name="label_price_bw_letter">B&amp;W Letter (per page)</string>
+    <string name="label_price_color_letter">Color Letter (per page)</string>
+    <string name="label_double_sided_discount">Double-Sided Discount (%)</string>
+    <string name="label_min_order_amount">Minimum Order Amount</string>
+    <string name="hint_price">0.00</string>
+    <string name="msg_pricing_saved">Pricing updated successfully.</string>
+    <string name="label_current_pricing">Current Pricing</string>
+
+    <!-- Admin Reports -->
+    <string name="title_reports">Reports</string>
+    <string name="title_sales_report">Sales Report</string>
+    <string name="title_order_report">Order Report</string>
+    <string name="label_date_range">Date Range</string>
+    <string name="label_date_from">From</string>
+    <string name="label_date_to">To</string>
+    <string name="label_today">Today</string>
+    <string name="label_this_week">This Week</string>
+    <string name="label_this_month">This Month</string>
+    <string name="label_custom_range">Custom Range</string>
+    <string name="label_total_orders_report">Total Orders</string>
+    <string name="label_revenue_report">Revenue</string>
+    <string name="label_top_customers">Top Customers</string>
+    <string name="label_popular_formats">Popular Formats</string>
+    <string name="label_orders_by_status">Orders by Status</string>
+    <string name="btn_export_report">Export Report</string>
+    <string name="btn_generate_report">Generate Report</string>
+    <string name="msg_report_generated">Report generated.</string>
+    <string name="msg_report_exported">Report exported to Downloads.</string>
+
+    <!-- Shop Management -->
+    <string name="title_shop_management">Shop Management</string>
+    <string name="title_shop_info">Shop Info</string>
+    <string name="title_edit_shop">Edit Shop Info</string>
+    <string name="label_shop_name">Shop Name</string>
+    <string name="label_shop_address">Address</string>
+    <string name="label_shop_phone">Contact Number</string>
+    <string name="label_shop_hours">Opening Hours</string>
+    <string name="label_shop_description">Description</string>
+    <string name="hint_shop_name">e.g. Campus Print Center</string>
+    <string name="hint_shop_address">Full address</string>
+    <string name="hint_shop_description">Tell customers about your shop</string>
+    <string name="msg_shop_updated">Shop info updated.</string>
+    <string name="label_operating_hours">Operating Hours</string>
+    <string name="label_monday_friday">Mon – Fri</string>
+    <string name="label_saturday">Saturday</string>
+    <string name="label_sunday">Sunday</string>
+
+    <!-- Validation Errors -->
+    <string name="error_field_required">This field is required.</string>
+    <string name="error_invalid_email">Please enter a valid email address.</string>
+    <string name="error_invalid_phone">Please enter a valid phone number.</string>
+    <string name="error_password_too_short">Password must be at least 6 characters.</string>
+    <string name="error_passwords_no_match">Passwords do not match.</string>
+    <string name="error_name_too_short">Name must be at least 2 characters.</string>
+    <string name="error_invalid_price">Please enter a valid price.</string>
+    <string name="error_invalid_quantity">Please enter a valid quantity.</string>
+    <string name="error_select_file">Please select at least one file.</string>
+    <string name="error_select_shop">Please select a print shop.</string>
+    <string name="error_select_payment">Please select a payment method.</string>
+    <string name="error_copies_min">Copies must be at least 1.</string>
+    <string name="error_copies_max">Maximum copies allowed: %1$d.</string>
+    <string name="error_page_range_invalid">Invalid page range format.</string>
+    <string name="error_file_too_large">File exceeds maximum size of %1$d MB.</string>
+    <string name="error_file_unsupported">File type not supported.</string>
+    <string name="error_otp_invalid">Invalid OTP. Please try again.</string>
+    <string name="error_otp_expired">OTP has expired. Please request a new one.</string>
+    <string name="error_order_id_required">Please enter an Order ID.</string>
+    <string name="error_price_negative">Price cannot be negative.</string>
+    <string name="error_student_id_format">Student ID must be alphanumeric.</string>
+
+    <!-- Empty States -->
+    <string name="empty_orders_title">No Orders Yet</string>
+    <string name="empty_orders_desc">Your print orders will appear here.</string>
+    <string name="empty_notifications_title">All Caught Up!</string>
+    <string name="empty_notifications_desc">You have no new notifications.</string>
+    <string name="empty_printers_title">No Printers Added</string>
+    <string name="empty_printers_desc">Add a printer to start managing print jobs.</string>
+    <string name="empty_reports_title">No Data Available</string>
+    <string name="empty_reports_desc">Reports will appear here once orders start coming in.</string>
+    <string name="empty_search_title">No Results Found</string>
+    <string name="empty_search_desc">Try adjusting your search or filters.</string>
+    <string name="empty_history_title">No History</string>
+    <string name="empty_history_desc">Your conversion and compression history will appear here.</string>
+
+    <!-- Dialog Titles -->
+    <string name="dialog_title_confirm">Confirm</string>
+    <string name="dialog_title_error">Error</string>
+    <string name="dialog_title_warning">Warning</string>
+    <string name="dialog_title_info">Information</string>
+    <string name="dialog_title_success">Success</string>
+    <string name="dialog_title_logout">Log Out</string>
+    <string name="dialog_title_delete">Delete</string>
+    <string name="dialog_title_reject_order">Reject Order</string>
+    <string name="dialog_title_cancel_order">Cancel Order</string>
+    <string name="dialog_title_choose_file_source">Select File Source</string>
+    <string name="dialog_title_filter">Filter Orders</string>
+    <string name="dialog_title_permissions">Permission Required</string>
+    <string name="dialog_title_update_required">Update Required</string>
+    <string name="msg_update_required">A newer version of PressGo is available. Please update to continue.</string>
+    <string name="btn_update_now">Update Now</string>
+    <string name="msg_permissions_rationale">PressGo needs storage permission to select and upload your files for printing.</string>
+    <string name="btn_open_settings">Open Settings</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_orders">Orders</string>
+    <string name="nav_convert">Convert</string>
+    <string name="nav_compress">Compress</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_printers">Printers</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_admin">Admin</string>
+
+    <!-- Splash / Onboarding -->
+    <string name="splash_tagline">Your campus printing companion</string>
+    <string name="onboarding_title_1">Print Anywhere</string>
+    <string name="onboarding_desc_1">Send print jobs to campus shops from anywhere on campus.</string>
+    <string name="onboarding_title_2">Track in Real-time</string>
+    <string name="onboarding_desc_2">Follow your order from submission to pickup with live status updates.</string>
+    <string name="onboarding_title_3">Convert &amp; Compress</string>
+    <string name="onboarding_desc_3">Convert documents to PDF and compress files right in the app.</string>
+    <string name="btn_get_started">Get Started</string>
+    <string name="btn_skip">Skip</string>
+
+    <!-- Content Descriptions (Accessibility) -->
+    <string name="cd_app_logo">PressGo Logo</string>
+    <string name="cd_profile_photo">Profile photo</string>
+    <string name="cd_order_status_icon">Order status icon</string>
+    <string name="cd_file_icon">File type icon</string>
+    <string name="cd_notification_icon">Notification bell</string>
+    <string name="cd_back_button">Go back</string>
+    <string name="cd_close_button">Close</string>
+    <string name="cd_more_options">More options</string>
+    <string name="cd_qr_code">QR Code for order pickup</string>
+    <string name="cd_empty_state">Empty state illustration</string>
+    <string name="cd_shop_photo">Print shop photo</string>
+
+    <!-- Misc -->
+    <string name="label_or">OR</string>
+    <string name="label_na">N/A</string>
+    <string name="label_free">Free</string>
+    <string name="label_pages">pages</string>
+    <string name="label_page">page</string>
+    <string name="label_files">files</string>
+    <string name="label_file">file</string>
+    <string name="label_kb">KB</string>
+    <string name="label_mb">MB</string>
+    <string name="label_gb">GB</string>
+    <string name="label_rupee_sign">BDT </string>
+    <string name="label_percent_sign">%</string>
+    <string name="label_shop_id">Shop ID</string>
+    <string name="label_customer_name">Customer Name</string>
+    <string name="label_customer_id">Customer ID</string>
+    <string name="label_created_at">Created At</string>
+    <string name="label_updated_at">Updated At</string>
+    <string name="label_view_more">View More</string>
+    <string name="label_powered_by">Powered by PressGo</string>
+    <string name="text_version">Version %1$s</string>
+    <string name="label_all_rights_reserved">© 2024 PressGo. All rights reserved.</string>
+</resources>
