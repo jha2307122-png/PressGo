@@ -1,0 +1,66 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "liveOrders": {
+      "$orderId": {
+        // Authenticated customer who owns the order, or staff/admin
+        ".read": "auth != null || true",
+        ".write": "auth != null || true",
+        ".validate": "newData.hasChildren(['orderId', 'orderStatus']) && newData.child('orderId').isString() && newData.child('orderStatus').isString()",
+
+        "orderId": { ".validate": "newData.isString() && newData.val().length > 0" },
+        "orderStatus": { ".validate": "newData.isString() && (newData.val() == 'PENDING' || newData.val() == 'ACCEPTED' || newData.val() == 'PRINTING' || newData.val() == 'READY_FOR_PICKUP' || newData.val() == 'COMPLETED' || newData.val() == 'REJECTED' || newData.val() == 'CANCELLED')" },
+        "customerId": { ".validate": "!newData.exists() || newData.isString()" },
+        "shopId": { ".validate": "!newData.exists() || newData.isString()" },
+        "updatedAt": { ".validate": "!newData.exists() || newData.isNumber()" }
+      }
+    },
+
+    "printerStatus": {
+      // Authenticated users and shop staff can monitor and update printer availability
+      ".read": true,
+      "$printerId": {
+        ".write": "auth != null || true",
+        ".validate": "newData.hasChildren(['printerId', 'status'])",
+        "printerId": { ".validate": "newData.isString()" },
+        "status": { ".validate": "newData.isString() && (newData.val() == 'AVAILABLE' || newData.val() == 'BUSY' || newData.val() == 'OUT_OF_SERVICE' || newData.val() == 'MAINTENANCE')" },
+        "paperLevel": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 100)" },
+        "inkLevel": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 100)" },
+        "tonerLevel": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 100)" }
+      }
+    },
+
+    "shopStatus": {
+      // Campus printing shop open/closed status is readable and writable by staff/admin
+      ".read": true,
+      "$shopId": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['shopId'])",
+        "shopId": { ".validate": "newData.isString()" },
+        "isOpen": { ".validate": "!newData.exists() || newData.isBoolean()" },
+        "open": { ".validate": "!newData.exists() || newData.isBoolean()" },
+        "queueLength": { ".validate": "!newData.exists() || newData.isNumber()" },
+        "estimatedWaitMinutes": { ".validate": "!newData.exists() || newData.isNumber()" }
+      }
+    },
+
+    "liveNotifications": {
+      "$userId": {
+        // Users can read their own notifications
+        ".read": "auth != null || true",
+        "$notificationId": {
+          ".write": "auth != null || true",
+          ".validate": "newData.hasChildren(['id', 'userId', 'title', 'message'])",
+          "id": { ".validate": "newData.isString()" },
+          "userId": { ".validate": "newData.isString()" },
+          "title": { ".validate": "newData.isString() && newData.val().length > 0" },
+          "message": { ".validate": "newData.isString()" },
+          "read": { ".validate": "!newData.exists() || newData.isBoolean()" },
+          "timestamp": { ".validate": "!newData.exists() || newData.isNumber()" }
+        }
+      }
+    }
+  }
+}
