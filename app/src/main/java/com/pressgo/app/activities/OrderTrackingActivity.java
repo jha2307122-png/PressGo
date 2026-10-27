@@ -31,6 +31,7 @@ public class OrderTrackingActivity extends AppCompatActivity {
     private PrintOrder currentOrder;
     private String lastStatus;
     private ListenerRegistration orderListener;
+    private com.pressgo.app.repositories.RealtimeDatabaseRepository.ListenerHandle liveOrderHandle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,23 @@ public class OrderTrackingActivity extends AppCompatActivity {
 
     private void startListeningToOrder() {
         binding.progressBar.setVisibility(View.VISIBLE);
+
+        // Real-time synchronization via Firebase Realtime Database
+        liveOrderHandle = com.pressgo.app.repositories.RealtimeDatabaseRepository.getInstance()
+                .listenToOrderStatus(orderId, new com.pressgo.app.repositories.RealtimeDatabaseRepository.LiveListener<com.pressgo.app.models.LiveOrderStatus>() {
+                    @Override
+                    public void onUpdate(com.pressgo.app.models.LiveOrderStatus liveStatus) {
+                        if (liveStatus == null || isFinishing() || isDestroyed()) return;
+                        runOnUiThread(() -> handleLiveStatusUpdate(liveStatus));
+                    }
+
+                    @Override
+                    public void onError(Exception error) {
+                        Log.d(TAG, "Realtime order listener fallback: " + error.getMessage());
+                    }
+                });
+
+        // Persistent Firestore listener
         orderListener = OrderRepository.getInstance().addOrderStatusListener(orderId, (snapshot, error) -> {
             binding.progressBar.setVisibility(View.GONE);
             if (error != null) {
@@ -83,34 +101,60 @@ public class OrderTrackingActivity extends AppCompatActivity {
                 if (currentOrder != null) {
                     currentOrder.setId(snapshot.getId());
                     if (lastStatus != null && !lastStatus.equals(currentOrder.getOrderStatus())) {
-                        String newStatus = currentOrder.getOrderStatus();
-                        if (PrintOrder.STATUS_ACCEPTED.equals(newStatus)) {
-                            Toast.makeText(this, "Order Accepted by Shopkeeper!", Toast.LENGTH_SHORT).show();
-                            NotificationUtils.createOrderNotification(this, "Order Accepted",
-                                    "Your print order has been accepted and added to the printing queue.", orderId);
-                        } else if (PrintOrder.STATUS_PRINTING.equals(newStatus)) {
-                            Toast.makeText(this, "Printing started!", Toast.LENGTH_SHORT).show();
-                            NotificationUtils.createOrderNotification(this, "Printing in Progress",
-                                    "Your documents are currently being printed.", orderId);
-                        } else if (PrintOrder.STATUS_READY_FOR_PICKUP.equals(newStatus)) {
-                            Toast.makeText(this, "🎉 Printout Ready! Pay online to unlock your Pickup QR code.", Toast.LENGTH_LONG).show();
-                            NotificationUtils.createOrderNotification(this, "Printout Ready! 📄",
-                                    "Your printout is ready! Pay online from the app to receive your pickup QR code.", orderId);
-                        } else if (PrintOrder.STATUS_COMPLETED.equals(newStatus)) {
-                            Toast.makeText(this, "✅ Order completed! Printout handed over.", Toast.LENGTH_LONG).show();
-                            NotificationUtils.createOrderNotification(this, "Order Completed! ✅",
-                                    "Your print order has been completed and handed over.", orderId);
-                        } else if (PrintOrder.STATUS_REJECTED.equals(newStatus)) {
-                            Toast.makeText(this, "Order Rejected", Toast.LENGTH_LONG).show();
-                            NotificationUtils.createOrderNotification(this, "Order Rejected",
-                                    "Unfortunately, your print order could not be accepted.", orderId);
-                        }
+                        triggerStatusNotificationAndToast(currentOrder.getOrderStatus());
                     }
                     lastStatus = currentOrder.getOrderStatus();
                     updateUI(currentOrder);
                 }
             }
         });
+    }
+
+    private void handleLiveStatusUpdate(com.pressgo.app.models.LiveOrderStatus liveStatus) {
+        String newStatus = liveStatus.getOrderStatus();
+        if (newStatus == null || newStatus.isEmpty()) return;
+
+        if (currentOrder != null) {
+            if (lastStatus != null && !newStatus.equals(lastStatus)) {
+                triggerStatusNotificationAndToast(newStatus);
+            }
+            lastStatus = newStatus;
+            currentOrder.setOrderStatus(newStatus);
+            if (liveStatus.getPickupToken() != null && !liveStatus.getPickupToken().isEmpty()) {
+                currentOrder.setPickupToken(liveStatus.getPickupToken());
+            }
+            if (liveStatus.getStaffNotes() != null && !liveStatus.getStaffNotes().isEmpty()) {
+                currentOrder.setStaffNotes(liveStatus.getStaffNotes());
+            }
+            updateUI(currentOrder);
+        } else {
+            binding.orderProgressView.setCurrentStatus(newStatus);
+            binding.statusBadge.setStatus(newStatus);
+        }
+    }
+
+    private void triggerStatusNotificationAndToast(String newStatus) {
+        if (PrintOrder.STATUS_ACCEPTED.equals(newStatus)) {
+            Toast.makeText(this, "Order Accepted by Shopkeeper!", Toast.LENGTH_SHORT).show();
+            NotificationUtils.createOrderNotification(this, "Order Accepted",
+                    "Your print order has been accepted and added to the printing queue.", orderId);
+        } else if (PrintOrder.STATUS_PRINTING.equals(newStatus)) {
+            Toast.makeText(this, "Printing started!", Toast.LENGTH_SHORT).show();
+            NotificationUtils.createOrderNotification(this, "Printing in Progress",
+                    "Your documents are currently being printed.", orderId);
+        } else if (PrintOrder.STATUS_READY_FOR_PICKUP.equals(newStatus)) {
+            Toast.makeText(this, "🎉 Printout Ready! Pay online to unlock your Pickup QR code.", Toast.LENGTH_LONG).show();
+            NotificationUtils.createOrderNotification(this, "Printout Ready! 📄",
+                    "Your printout is ready! Pay online from the app to receive your pickup QR code.", orderId);
+        } else if (PrintOrder.STATUS_COMPLETED.equals(newStatus)) {
+            Toast.makeText(this, "✅ Order completed! Printout handed over.", Toast.LENGTH_LONG).show();
+            NotificationUtils.createOrderNotification(this, "Order Completed! ✅",
+                    "Your print order has been completed and handed over.", orderId);
+        } else if (PrintOrder.STATUS_REJECTED.equals(newStatus)) {
+            Toast.makeText(this, "Order Rejected", Toast.LENGTH_LONG).show();
+            NotificationUtils.createOrderNotification(this, "Order Rejected",
+                    "Unfortunately, your print order could not be accepted.", orderId);
+        }
     }
 
     private void updateUI(PrintOrder order) {
@@ -208,6 +252,9 @@ public class OrderTrackingActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        if (liveOrderHandle != null) {
+            liveOrderHandle.remove();
+        }
         if (orderListener != null) {
             orderListener.remove();
         }
