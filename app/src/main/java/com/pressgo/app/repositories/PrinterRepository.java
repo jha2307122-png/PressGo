@@ -71,7 +71,16 @@ public class PrinterRepository {
         updates.put("lastUpdated", Timestamp.now());
         db.collection(Constants.COLLECTION_PRINTERS).document(printerId)
                 .update(updates)
-                .addOnCompleteListener(onComplete);
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        RealtimeDatabaseRepository.getInstance().updatePrinterStatus(
+                                printerId, null, null, status, -1, -1, -1, null, null
+                        );
+                    }
+                    if (onComplete != null) {
+                        onComplete.onComplete(task);
+                    }
+                });
     }
 
     public void updatePrinterLevels(String printerId, int paperLevel, int inkLevel, int tonerLevel,
@@ -83,7 +92,16 @@ public class PrinterRepository {
         updates.put("lastUpdated", Timestamp.now());
         db.collection(Constants.COLLECTION_PRINTERS).document(printerId)
                 .update(updates)
-                .addOnCompleteListener(onComplete);
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        RealtimeDatabaseRepository.getInstance().updatePrinterStatus(
+                                printerId, null, null, null, paperLevel, inkLevel, tonerLevel, null, null
+                        );
+                    }
+                    if (onComplete != null) {
+                        onComplete.onComplete(task);
+                    }
+                });
     }
 
     public void addPrinter(Printer printer, OnCompleteListener<Void> onComplete) {
@@ -93,7 +111,24 @@ public class PrinterRepository {
         printer.setLastUpdated(Timestamp.now());
         db.collection(Constants.COLLECTION_PRINTERS).document(printer.getId())
                 .set(printer)
-                .addOnCompleteListener(onComplete);
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        RealtimeDatabaseRepository.getInstance().updatePrinterStatus(
+                                printer.getId(),
+                                printer.getShopId(),
+                                printer.getName(),
+                                printer.getStatus(),
+                                printer.getPaperLevel(),
+                                printer.getInkLevel(),
+                                printer.getTonerLevel(),
+                                printer.getCurrentJobId(),
+                                null
+                        );
+                    }
+                    if (onComplete != null) {
+                        onComplete.onComplete(task);
+                    }
+                });
     }
 
     public ListenerRegistration addPrintersListener(String shopId, EventListener<QuerySnapshot> listener) {

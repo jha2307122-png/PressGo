@@ -30,6 +30,7 @@ public class PrinterManagementActivity extends AppCompatActivity {
     private final List<Printer> printers = new ArrayList<>();
     private PrinterAdapter adapter;
     private String shopId;
+    private com.pressgo.app.repositories.RealtimeDatabaseRepository.ListenerHandle livePrintersHandle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,49 @@ public class PrinterManagementActivity extends AppCompatActivity {
         setupRecyclerView();
         setupFab();
         loadPrinters();
+        attachLivePrintersListener();
+    }
+
+    private void attachLivePrintersListener() {
+        if (shopId == null || shopId.isEmpty()) return;
+        livePrintersHandle = com.pressgo.app.repositories.RealtimeDatabaseRepository.getInstance()
+                .listenToShopPrinters(shopId, new com.pressgo.app.repositories.RealtimeDatabaseRepository.LiveListener<List<com.pressgo.app.models.LivePrinterStatus>>() {
+                    @Override
+                    public void onUpdate(List<com.pressgo.app.models.LivePrinterStatus> liveList) {
+                        if (liveList == null || liveList.isEmpty() || isFinishing() || isDestroyed()) return;
+                        runOnUiThread(() -> {
+                            boolean changed = false;
+                            for (com.pressgo.app.models.LivePrinterStatus live : liveList) {
+                                for (Printer p : printers) {
+                                    if (p.getId() != null && p.getId().equals(live.getPrinterId())) {
+                                        if (live.getStatus() != null && !live.getStatus().equals(p.getStatus())) {
+                                            p.setStatus(live.getStatus());
+                                            changed = true;
+                                        }
+                                        if (live.getPaperLevel() >= 0 && live.getPaperLevel() != p.getPaperLevel()) {
+                                            p.setPaperLevel(live.getPaperLevel());
+                                            changed = true;
+                                        }
+                                        if (live.getInkLevel() >= 0 && live.getInkLevel() != p.getInkLevel()) {
+                                            p.setInkLevel(live.getInkLevel());
+                                            changed = true;
+                                        }
+                                        if (live.getTonerLevel() >= 0 && live.getTonerLevel() != p.getTonerLevel()) {
+                                            p.setTonerLevel(live.getTonerLevel());
+                                            changed = true;
+                                        }
+                                    }
+                                }
+                            }
+                            if (changed && adapter != null) {
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception error) {}
+                });
     }
 
     private void setupRecyclerView() {
@@ -231,5 +275,8 @@ public class PrinterManagementActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        if (livePrintersHandle != null) {
+            livePrintersHandle.remove();
+        }
     }
 }
