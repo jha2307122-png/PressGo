@@ -340,11 +340,14 @@ public class ShopRepository {
             }
         }
 
+        // Immediately synchronize to Realtime Database
+        RealtimeDatabaseRepository.getInstance().updateShopStatus(shopId, isOpen, -1, -1, null);
+
         Map<String, Object> updates = new HashMap<>();
         updates.put("isOpen", isOpen);
         updates.put("open", isOpen);
         db.collection(COLLECTION_SHOPS).document(shopId)
-                .update(updates)
+                .set(updates, com.google.firebase.firestore.SetOptions.merge())
                 .addOnCompleteListener(t -> {
                     if (onComplete != null) onComplete.onComplete(t);
                 });

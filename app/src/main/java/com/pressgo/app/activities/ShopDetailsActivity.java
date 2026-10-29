@@ -32,6 +32,8 @@ public class ShopDetailsActivity extends AppCompatActivity {
     private PrinterRepository printerRepository;
     private String shopId;
     private Shop currentShop;
+    private com.pressgo.app.repositories.RealtimeDatabaseRepository.ListenerHandle liveShopHandle;
+    private com.pressgo.app.repositories.RealtimeDatabaseRepository.ListenerHandle livePrintersHandle;
 
     // ─────────────────────────────────────────────────────────────────────────
     // Lifecycle
@@ -66,8 +68,32 @@ public class ShopDetailsActivity extends AppCompatActivity {
 
         setupPrinterList();
         loadShopDetails();
+        attachLiveShopStatusListener();
 
         binding.btnStartOrder.setOnClickListener(v -> navigateToDocumentUpload());
+    }
+
+    private void attachLiveShopStatusListener() {
+        if (shopId == null || shopId.isEmpty()) return;
+        liveShopHandle = com.pressgo.app.repositories.RealtimeDatabaseRepository.getInstance()
+                .listenToShopStatus(shopId, new com.pressgo.app.repositories.RealtimeDatabaseRepository.LiveListener<com.pressgo.app.models.LiveShopStatus>() {
+                    @Override
+                    public void onUpdate(com.pressgo.app.models.LiveShopStatus status) {
+                        if (status == null || isFinishing() || isDestroyed()) return;
+                        runOnUiThread(() -> {
+                            if (currentShop != null) {
+                                currentShop.setOpen(status.isOpen());
+                                if (status.getEstimatedWaitMinutes() >= 0) {
+                                    currentShop.setEstimatedQueueMinutes(status.getEstimatedWaitMinutes());
+                                }
+                                bindShopDetails(currentShop);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception error) {}
+                });
     }
 
     @Override
@@ -255,5 +281,17 @@ public class ShopDetailsActivity extends AppCompatActivity {
     private void showLoading(boolean loading) {
         binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
         binding.contentScroll.setVisibility(loading ? View.GONE : View.VISIBLE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
+        if (liveShopHandle != null) {
+            liveShopHandle.remove();
+        }
+        if (livePrintersHandle != null) {
+            livePrintersHandle.remove();
+        }
     }
 }
