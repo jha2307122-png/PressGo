@@ -50,7 +50,24 @@ public class NotificationRepository {
         db.collection(Constants.COLLECTION_NOTIFICATIONS)
                 .document(notification.getId())
                 .set(notification)
-                .addOnCompleteListener(onComplete);
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && notification.getUserId() != null) {
+                        com.pressgo.app.models.LiveNotification liveNotif = new com.pressgo.app.models.LiveNotification(
+                                notification.getId(),
+                                notification.getUserId(),
+                                notification.getOrderId(),
+                                notification.getTitle(),
+                                notification.getMessage(),
+                                notification.getType(),
+                                notification.isRead(),
+                                notification.getCreatedAt() != null ? notification.getCreatedAt().getSeconds() * 1000 : System.currentTimeMillis()
+                        );
+                        RealtimeDatabaseRepository.getInstance().sendLiveNotification(liveNotif, null);
+                    }
+                    if (onComplete != null) {
+                        onComplete.onComplete(task);
+                    }
+                });
     }
 
     public void getUserNotifications(String userId,
@@ -102,6 +119,13 @@ public class NotificationRepository {
                 .document(notificationId)
                 .update(updates)
                 .addOnCompleteListener(onComplete);
+    }
+
+    public void markAsRead(String userId, String notificationId, OnCompleteListener<Void> onComplete) {
+        if (userId != null && notificationId != null) {
+            RealtimeDatabaseRepository.getInstance().markLiveNotificationRead(userId, notificationId, null);
+        }
+        markAsRead(notificationId, onComplete);
     }
 
     public void markAllAsRead(String userId, OnCompleteListener<Void> onComplete) {
