@@ -85,6 +85,17 @@ public class OrderRepository {
                     if (onSuccess != null) {
                         onSuccess.onSuccess(order.getId());
                     }
+                    // Synchronize initial live order status to Realtime Database
+                    RealtimeDatabaseRepository.getInstance().updateLiveOrderStatus(
+                            order.getId(),
+                            order.getOrderStatus() != null ? order.getOrderStatus() : PrintOrder.STATUS_PENDING,
+                            order.getCustomerId(),
+                            order.getShopId(),
+                            order.getCustomerNotes(),
+                            order.getPickupToken(),
+                            12,
+                            null
+                    );
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error creating order", e);
@@ -282,6 +293,17 @@ public class OrderRepository {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         createStatusNotification(orderId, newStatus);
+                        String pickupToken = updates.containsKey("pickupToken") ? (String) updates.get("pickupToken") : null;
+                        RealtimeDatabaseRepository.getInstance().updateLiveOrderStatus(
+                                orderId,
+                                newStatus,
+                                null,
+                                null,
+                                notes,
+                                pickupToken,
+                                null,
+                                null
+                        );
                     }
                     if (onComplete != null) {
                         onComplete.onComplete(task);
@@ -371,6 +393,16 @@ public class OrderRepository {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         createStatusNotification(orderId, PrintOrder.STATUS_CANCELLED);
+                        RealtimeDatabaseRepository.getInstance().updateLiveOrderStatus(
+                                orderId,
+                                PrintOrder.STATUS_CANCELLED,
+                                null,
+                                null,
+                                reason,
+                                null,
+                                0,
+                                null
+                        );
                     }
                     if (onComplete != null) {
                         onComplete.onComplete(task);
@@ -385,6 +417,16 @@ public class OrderRepository {
         db.collection(Constants.COLLECTION_ORDERS).document(orderId)
                 .update("pickupToken", token)
                 .addOnSuccessListener(aVoid -> {
+                    RealtimeDatabaseRepository.getInstance().updateLiveOrderStatus(
+                            orderId,
+                            PrintOrder.STATUS_READY_FOR_PICKUP,
+                            null,
+                            null,
+                            null,
+                            token,
+                            0,
+                            null
+                    );
                     if (onSuccess != null) onSuccess.onSuccess(token);
                 })
                 .addOnFailureListener(onFailure);

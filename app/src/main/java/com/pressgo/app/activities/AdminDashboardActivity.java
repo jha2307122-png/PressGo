@@ -34,6 +34,7 @@ import com.pressgo.app.utils.Constants;
 import com.pressgo.app.utils.NotificationUtils;
 import com.pressgo.app.models.PrintOrder;
 import com.pressgo.app.models.Printer;
+import com.pressgo.app.models.Shop;
 import com.pressgo.app.models.User;
 import com.pressgo.app.repositories.InventoryRepository;
 import com.pressgo.app.repositories.OrderRepository;
@@ -80,6 +81,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private ListenerRegistration printersListener;
     private ListenerRegistration inventoryListener;
     private ListenerRegistration shopStatusListener;
+    private com.pressgo.app.repositories.RealtimeDatabaseRepository.ListenerHandle liveShopStatusHandle;
     private boolean isShopOpen = true;
 
     // Repositories
@@ -127,6 +129,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
             adminName = "Shopkeeper Admin";
             shopName = "Campus Print Hub";
             shopAddress = "Student Center 2nd Floor";
+            Boolean local = ShopRepository.getInstance().getLocalShopOpenOverride(shopId);
+            isShopOpen = local != null ? local : true;
             setupUI();
             return;
         }
@@ -193,33 +197,48 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void loadShopInfo() {
+        // Initial fallback from local cache
+        Shop localShop = null;
+        for (Shop s : ShopRepository.getInstance().getLocalRegisteredShops()) {
+            if (shopId != null && shopId.equals(s.getId())) {
+                localShop = s;
+                break;
+            }
+        }
+        if (localShop != null) {
+            shopName = localShop.getName();
+            shopAddress = localShop.getAddress();
+            shopLat = localShop.getLatitude();
+            shopLng = localShop.getLongitude();
+            isShopOpen = localShop.isOpen();
+        } else {
+            Boolean local = ShopRepository.getInstance().getLocalShopOpenOverride(shopId);
+            isShopOpen = local != null ? local : true;
+        }
+
         db.collection("shops").document(shopId)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    shopName = doc.getString("name");
-                    if (shopName == null) shopName = "My Shop";
-                    Double lat = doc.getDouble("latitude");
-                    Double lng = doc.getDouble("longitude");
-                    if (lat != null) shopLat = lat;
-                    if (lng != null) shopLng = lng;
-                    shopAddress = doc.getString("address");
-                    if (shopAddress == null) shopAddress = "";
-                    Boolean open = doc.getBoolean("isOpen");
-                    if (open == null) open = doc.getBoolean("open");
-                    if (open != null) {
-                        isShopOpen = open;
-                    } else {
-                        Boolean local = ShopRepository.getInstance().getLocalShopOpenOverride(shopId);
-                        isShopOpen = local != null ? local : true;
+                    if (doc.exists()) {
+                        String name = doc.getString("name");
+                        if (name != null) shopName = name;
+                        Double lat = doc.getDouble("latitude");
+                        Double lng = doc.getDouble("longitude");
+                        if (lat != null) shopLat = lat;
+                        if (lng != null) shopLng = lng;
+                        String addr = doc.getString("address");
+                        if (addr != null) shopAddress = addr;
+                        Boolean open = doc.getBoolean("isOpen");
+                        if (open == null) open = doc.getBoolean("open");
+                        if (open != null) {
+                            isShopOpen = open;
+                        }
                     }
                     Log.d(TAG, "Shop loaded: " + shopName + " coords: " + shopLat + ", " + shopLng + " isOpen=" + isShopOpen);
                     setupUI();
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to load shop", e);
-                    shopName = "My Shop";
-                    Boolean local = ShopRepository.getInstance().getLocalShopOpenOverride(shopId);
-                    isShopOpen = local != null ? local : true;
+                    Log.e(TAG, "Failed to load shop from Firestore, using local fallback", e);
                     setupUI();
                 });
     }
@@ -264,6 +283,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     private void setupShopStatusCard() {
         updateShopStatusUI();
+        binding.cardShopStatus.setOnClickListener(v -> binding.switchShopStatus.toggle());
     }
 
     private void updateShopStatusUI() {
@@ -401,6 +421,26 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     private void attachShopStatusListener() {
         if (shopId == null || shopId.isEmpty()) return;
+        if (liveShopStatusHandle != null) {
+            liveShopStatusHandle.remove();
+        }
+        liveShopStatusHandle = com.pressgo.app.repositories.RealtimeDatabaseRepository.getInstance()
+                .listenToShopStatus(shopId, new com.pressgo.app.repositories.RealtimeDatabaseRepository.LiveListener<com.pressgo.app.models.LiveShopStatus>() {
+                    @Override
+                    public void onUpdate(com.pressgo.app.models.LiveShopStatus status) {
+                        if (status == null || isFinishing() || isDestroyed()) return;
+                        runOnUiThread(() -> {
+                            if (status.isOpen() != isShopOpen) {
+                                isShopOpen = status.isOpen();
+                                updateShopStatusUI();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception error) {}
+                });
+
         shopStatusListener = ShopRepository.getInstance().addShopListener(shopId, (doc, e) -> {
             if (e != null) {
                 Log.e(TAG, "Shop status listener error", e);
@@ -680,6 +720,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy — detaching listeners");
+        if (liveShopStatusHandle != null) liveShopStatusHandle.remove();
         if (ordersListener != null) ordersListener.remove();
         if (printersListener != null) printersListener.remove();
         if (inventoryListener != null) inventoryListener.remove();

@@ -41,6 +41,7 @@ public class CustomerDashboardActivity extends AppCompatActivity {
     private final List<PrintOrder> recentOrders = new ArrayList<>();
     private ListenerRegistration notificationListener;
     private ListenerRegistration ordersListener;
+    private com.pressgo.app.repositories.RealtimeDatabaseRepository.ListenerHandle liveNotifHandle;
     private final java.util.Set<String> notifiedIds = new java.util.HashSet<>();
 
     @Override
@@ -212,6 +213,42 @@ public class CustomerDashboardActivity extends AppCompatActivity {
         if (notificationListener != null) {
             notificationListener.remove();
         }
+        if (liveNotifHandle != null) {
+            liveNotifHandle.remove();
+        }
+
+        // Live Realtime Database notification listener
+        liveNotifHandle = com.pressgo.app.repositories.RealtimeDatabaseRepository.getInstance()
+                .listenToLiveNotifications(uid, new com.pressgo.app.repositories.RealtimeDatabaseRepository.LiveListener<List<com.pressgo.app.models.LiveNotification>>() {
+                    @Override
+                    public void onUpdate(List<com.pressgo.app.models.LiveNotification> list) {
+                        if (list == null || isFinishing() || isDestroyed()) return;
+                        runOnUiThread(() -> {
+                            int unreadCount = 0;
+                            for (com.pressgo.app.models.LiveNotification n : list) {
+                                if (!n.isRead()) {
+                                    unreadCount++;
+                                    String notifId = n.getId();
+                                    if (notifId != null && !notifiedIds.contains(notifId)) {
+                                        notifiedIds.add(notifId);
+                                        com.pressgo.app.utils.NotificationUtils.createOrderNotification(
+                                                CustomerDashboardActivity.this,
+                                                n.getTitle() != null ? n.getTitle() : "PressGo Order Update",
+                                                n.getMessage() != null ? n.getMessage() : "Your order status was updated.",
+                                                n.getOrderId()
+                                        );
+                                    }
+                                }
+                            }
+                            if (unreadCount > 0) {
+                                updateNotificationBadge(unreadCount);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception error) {}
+                });
 
         notificationListener = NotificationRepository.getInstance().addNotificationsListener(uid, (snapshot, e) -> {
             if (e != null) {
@@ -324,6 +361,9 @@ public class CustomerDashboardActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        if (liveNotifHandle != null) {
+            liveNotifHandle.remove();
+        }
         if (notificationListener != null) {
             notificationListener.remove();
         }
