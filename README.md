@@ -118,4 +118,13 @@ The output APK will be generated at:
 
 - `firestore.rules`: Enforces role-based permissions preventing customers from tampering with pricing, inventory, or orders of other users.
 - `storage.rules`: Restricts document file access to authorized users and limits upload sizes to 50MB.
+- `database.rules.json`: Enforces authenticated access controls and telemetry security for Firebase Realtime Database.
 - `google-services.json`: Configured with client credentials for package `com.pressgo.app`.
+
+---
+
+## 📦 Release Information
+
+- **Release Version**: 1.0.0
+- **Final Build Date**: November 6, 2026
+- **Architecture**: Clean MVVM with Repository Pattern and Firebase Backend
