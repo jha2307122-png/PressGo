@@ -259,6 +259,35 @@ public final class NotificationUtils {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // System & General alerts
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Shows a notification on the GENERAL channel for system state changes
+     * such as Airplane Mode or network events.
+     */
+    public static void createSystemAlert(Context context, String title, String message) {
+        if (context == null) return;
+        createNotificationChannels(context);
+
+        if (!hasNotificationPermission(context)) {
+            Log.w(TAG, "createSystemAlert: POST_NOTIFICATIONS permission not granted");
+            return;
+        }
+
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(context, Constants.CHANNEL_GENERAL)
+                        .setSmallIcon(R.drawable.ic_notification)
+                        .setContentTitle(title)
+                        .setContentText(message)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setAutoCancel(true);
+
+        showNotification(context, builder);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Internal helpers
     // ─────────────────────────────────────────────────────────────────────────
 
