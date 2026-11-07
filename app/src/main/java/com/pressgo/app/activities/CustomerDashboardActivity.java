@@ -21,6 +21,8 @@ import com.pressgo.app.R;
 import com.pressgo.app.adapters.RecentOrderAdapter;
 import com.pressgo.app.databinding.ActivityCustomerDashboardBinding;
 import com.pressgo.app.models.PrintOrder;
+import com.pressgo.app.receivers.AirplaneModeReceiver;
+import com.pressgo.app.receivers.BatteryLevelReceiver;
 import com.pressgo.app.repositories.NotificationRepository;
 import com.pressgo.app.repositories.OrderRepository;
 import com.pressgo.app.repositories.UserRepository;
@@ -43,6 +45,8 @@ public class CustomerDashboardActivity extends AppCompatActivity {
     private ListenerRegistration ordersListener;
     private com.pressgo.app.repositories.RealtimeDatabaseRepository.ListenerHandle liveNotifHandle;
     private final java.util.Set<String> notifiedIds = new java.util.HashSet<>();
+    private AirplaneModeReceiver airplaneModeReceiver;
+    private BatteryLevelReceiver batteryLevelReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +112,9 @@ public class CustomerDashboardActivity extends AppCompatActivity {
 
         binding.cardHelpSupport.setOnClickListener(v ->
                 startActivity(new Intent(this, ProfileActivity.class)));
+
+        binding.cardContacts.setOnClickListener(v ->
+                startActivity(new Intent(this, ContactPickerActivity.class)));
 
         binding.btnViewAllOrders.setOnClickListener(v ->
                 startActivity(new Intent(this, CustomerOrderListActivity.class)));
@@ -349,12 +356,46 @@ public class CustomerDashboardActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        // Dynamically register system broadcast receivers safely (Android 8.0+ / 13+ compliant)
+        airplaneModeReceiver = AirplaneModeReceiver.register(this, isAirplaneModeOn -> {
+            if (binding != null && binding.cardAirplaneModeBanner != null) {
+                binding.cardAirplaneModeBanner.setVisibility(isAirplaneModeOn ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        batteryLevelReceiver = BatteryLevelReceiver.register(this, (isLowBattery, isCharging, batteryPercent) -> {
+            if (binding != null && binding.cardBatteryWarningBanner != null) {
+                if (isLowBattery && !isCharging) {
+                    binding.cardBatteryWarningBanner.setVisibility(View.VISIBLE);
+                    binding.tvBatteryWarningTitle.setText(batteryPercent >= 0
+                            ? "Battery Low (" + batteryPercent + "%)"
+                            : "Battery Low");
+                } else {
+                    binding.cardBatteryWarningBanner.setVisibility(View.GONE);
+                }
+            }
+        });
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         loadRecentOrders();
         if (ordersListener == null) {
             attachOrderListener();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Safely unregister receivers to avoid memory leaks
+        AirplaneModeReceiver.safeUnregister(this, airplaneModeReceiver);
+        airplaneModeReceiver = null;
+        BatteryLevelReceiver.safeUnregister(this, batteryLevelReceiver);
+        batteryLevelReceiver = null;
     }
 
     @Override
