@@ -129,6 +129,7 @@ public class ConversionService extends Service {
                 outputFile = new File(tempDir, outputName != null ? outputName : "converted_" + System.currentTimeMillis() + ".pdf");
                 com.itextpdf.kernel.pdf.PdfDocument pdfDoc = new com.itextpdf.kernel.pdf.PdfDocument(new PdfWriter(outputFile));
                 com.itextpdf.layout.Document doc = new com.itextpdf.layout.Document(pdfDoc);
+                doc.setMargins(20f, 20f, 20f, 20f);
 
                 float printableWidth = pdfDoc.getDefaultPageSize().getWidth() - doc.getLeftMargin() - doc.getRightMargin();
                 float printableHeight = pdfDoc.getDefaultPageSize().getHeight() - doc.getTopMargin() - doc.getBottomMargin();
@@ -154,7 +155,8 @@ public class ConversionService extends Service {
                             doc.add(new AreaBreak(AreaBreakType.NEXT_PAGE));
                         }
                         com.itextpdf.layout.element.Image img = new com.itextpdf.layout.element.Image(imgData);
-                        img.scaleToFit(printableWidth, printableHeight);
+                        img.setMargins(0f, 0f, 0f, 0f);
+                        img.scaleToFit(printableWidth, printableHeight - 8f);
                         img.setHorizontalAlignment(HorizontalAlignment.CENTER);
                         doc.add(img);
                         imagesAdded++;
@@ -164,6 +166,7 @@ public class ConversionService extends Service {
                     doc.add(new Paragraph("No valid image content found."));
                 }
                 doc.close();
+                DocumentUtils.removeBlankPagesFromPdf(outputFile);
                 record.setOutputFileType("PDF");
             } else if ("TXT_TO_PDF".equals(type)) {
                 outputFile = new File(tempDir, outputName != null ? outputName : "text_" + System.currentTimeMillis() + ".pdf");
@@ -190,6 +193,7 @@ public class ConversionService extends Service {
                     doc.add(new Paragraph("(Empty text document)"));
                 }
                 doc.close();
+                DocumentUtils.removeBlankPagesFromPdf(outputFile);
                 record.setOutputFileType("PDF");
             } else if ("ZIP".equals(type)) {
                 outputFile = new File(tempDir, outputName != null ? outputName : "archive_" + System.currentTimeMillis() + ".zip");
@@ -356,12 +360,25 @@ public class ConversionService extends Service {
     }
 
     private byte[] readBytesFromUri(Uri uri) {
-        try (InputStream is = getContentResolver().openInputStream(uri);
+        InputStream is = null;
+        try {
+            is = getContentResolver().openInputStream(uri);
+        } catch (Exception e) {
+            if (uri.getPath() != null) {
+                File f = new File(uri.getPath());
+                if (f.exists()) {
+                    try {
+                        is = new java.io.FileInputStream(f);
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+        if (is == null) return new byte[0];
+        try (InputStream input = is;
              java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {
-            if (is == null) return new byte[0];
             byte[] buffer = new byte[8192];
             int len;
-            while ((len = is.read(buffer)) > 0) {
+            while ((len = input.read(buffer)) > 0) {
                 baos.write(buffer, 0, len);
             }
             return baos.toByteArray();

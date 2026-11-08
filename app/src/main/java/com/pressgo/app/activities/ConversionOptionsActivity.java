@@ -46,6 +46,7 @@ import com.pressgo.app.utils.FileDownloadUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -127,41 +128,42 @@ public class ConversionOptionsActivity extends AppCompatActivity {
     }
 
     private void setupHints() {
+        binding.etOutputName.setHint(null);
         if ("WORD_TO_PDF".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. document.pdf)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. document.pdf)");
             binding.tvSelectedFiles.setText("No Word document selected (tap Select Files to choose .docx or .doc)");
         } else if ("PPTX_TO_PDF".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. presentation.pdf)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. presentation.pdf)");
             binding.tvSelectedFiles.setText("No PowerPoint selected (tap Select Files to choose .pptx or .ppt)");
         } else if ("PDF_TO_WORD".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. document.docx)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. document.docx)");
             binding.tvSelectedFiles.setText("No PDF selected (tap Select Files to choose 1 PDF)");
         } else if ("PDF_TO_PPTX".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. presentation.pptx)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. presentation.pptx)");
             binding.tvSelectedFiles.setText("No PDF selected (tap Select Files to choose 1 PDF)");
         } else if ("MERGE_PDF".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. combined.pdf)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. combined.pdf)");
             binding.tvSelectedFiles.setText("No PDFs selected (tap Select Files to choose 2+ PDFs)");
         } else if ("SPLIT_PDF".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. split_pages.zip)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. split_pages.zip)");
             binding.tvSelectedFiles.setText("No PDF selected (tap Select Files to choose 1 PDF)");
         } else if ("PDF_TO_TXT".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. extracted_text.txt)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. extracted_text.txt)");
             binding.tvSelectedFiles.setText("No PDF selected (tap Select Files to choose 1 PDF)");
         } else if ("CODE_TO_PDF".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. lab_assignment.pdf)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. lab_assignment.pdf)");
             binding.tvSelectedFiles.setText("No code files selected (select .py, .java, .cpp, etc.)");
         } else if ("PDF_TO_IMAGES".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. page_images.zip)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. page_images.zip)");
             binding.tvSelectedFiles.setText("No PDF selected (tap Select Files to choose 1 PDF)");
         } else if ("TXT_TO_PDF".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. notes.pdf)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. notes.pdf)");
             binding.tvSelectedFiles.setText("No text files selected (tap Select Files to choose text files)");
         } else if ("IMAGE_FORMAT".equals(conversionType)) {
-            binding.etOutputName.setHint("Custom Filename (e.g. converted.png or converted.jpg)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. converted.png or converted.jpg)");
             binding.tvSelectedFiles.setText("No images selected (tap Select Files to choose JPG, PNG, WEBP)");
         } else {
-            binding.etOutputName.setHint("Custom Filename (e.g. converted.pdf)");
+            binding.tilOutputName.setHint("Custom Filename (e.g. converted.pdf)");
             binding.tvSelectedFiles.setText("No files selected (tap Select Files to choose images)");
         }
     }
@@ -193,8 +195,9 @@ public class ConversionOptionsActivity extends AppCompatActivity {
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                     "application/msword",
                     "application/rtf",
-                    "text/plain",
-                    "*/*"
+                    "application/x-rtf",
+                    "text/rtf",
+                    "application/octet-stream"
             });
             allowMultiple = false;
         } else if ("PPTX_TO_PDF".equals(conversionType)) {
@@ -202,19 +205,32 @@ public class ConversionOptionsActivity extends AppCompatActivity {
             intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
                     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
                     "application/vnd.ms-powerpoint",
-                    "*/*"
+                    "application/octet-stream"
             });
             allowMultiple = false;
         } else if ("IMAGES_TO_PDF".equals(conversionType) || "IMAGE_FORMAT".equals(conversionType)) {
             intent.setType("image/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                    "image/jpeg", "image/png", "image/webp", "image/bmp"
+            });
             allowMultiple = true;
         } else if ("PDF_TO_IMAGES".equals(conversionType) || "SPLIT_PDF".equals(conversionType)
                 || "PDF_TO_TXT".equals(conversionType) || "PDF_TO_WORD".equals(conversionType)
                 || "PDF_TO_PPTX".equals(conversionType)) {
-            intent.setType("application/pdf");
+            intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                    "application/pdf",
+                    "application/x-pdf",
+                    "application/octet-stream"
+            });
             allowMultiple = false;
         } else if ("MERGE_PDF".equals(conversionType)) {
-            intent.setType("application/pdf");
+            intent.setType("*/*");
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                    "application/pdf",
+                    "application/x-pdf",
+                    "application/octet-stream"
+            });
             allowMultiple = true;
         } else if ("TXT_TO_PDF".equals(conversionType)) {
             intent.setType("*/*");
@@ -223,7 +239,7 @@ public class ConversionOptionsActivity extends AppCompatActivity {
         } else if ("CODE_TO_PDF".equals(conversionType)) {
             intent.setType("*/*");
             intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
-                    "text/*", "application/javascript", "application/json", "application/xml", "application/octet-stream", "*/*"
+                    "text/*", "application/javascript", "application/json", "application/xml", "application/octet-stream"
             });
             allowMultiple = true;
         } else {
@@ -260,12 +276,22 @@ public class ConversionOptionsActivity extends AppCompatActivity {
     }
 
     private byte[] readBytesFromUri(Uri uri) throws Exception {
-        try (InputStream is = getContentResolver().openInputStream(uri);
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            if (is == null) throw new Exception("Could not open file stream");
+        InputStream is = null;
+        try {
+            is = getContentResolver().openInputStream(uri);
+        } catch (Exception e) {
+            if (uri.getPath() != null) {
+                File f = new File(uri.getPath());
+                if (f.exists()) {
+                    is = new FileInputStream(f);
+                }
+            }
+        }
+        if (is == null) throw new Exception("Could not open file stream");
+        try (InputStream input = is; ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[8192];
             int len;
-            while ((len = is.read(buffer)) > 0) {
+            while ((len = input.read(buffer)) > 0) {
                 baos.write(buffer, 0, len);
             }
             baos.flush();
@@ -367,6 +393,7 @@ public class ConversionOptionsActivity extends AppCompatActivity {
                     PdfWriter writer = new PdfWriter(new FileOutputStream(outputFile));
                     PdfDocument pdfDoc = new PdfDocument(writer);
                     Document doc = new Document(pdfDoc);
+                    doc.setMargins(20f, 20f, 20f, 20f);
 
                     float printableWidth = pdfDoc.getDefaultPageSize().getWidth() - doc.getLeftMargin() - doc.getRightMargin();
                     float printableHeight = pdfDoc.getDefaultPageSize().getHeight() - doc.getTopMargin() - doc.getBottomMargin();
@@ -393,7 +420,8 @@ public class ConversionOptionsActivity extends AppCompatActivity {
                                 doc.add(new AreaBreak(AreaBreakType.NEXT_PAGE));
                             }
                             Image img = new Image(imgData);
-                            img.scaleToFit(printableWidth, printableHeight);
+                            img.setMargins(0f, 0f, 0f, 0f);
+                            img.scaleToFit(printableWidth, printableHeight - 8f);
                             img.setHorizontalAlignment(HorizontalAlignment.CENTER);
                             doc.add(img);
                             imagesAdded++;
@@ -404,6 +432,7 @@ public class ConversionOptionsActivity extends AppCompatActivity {
                         doc.add(new Paragraph("No valid image content found."));
                     }
                     doc.close();
+                    DocumentUtils.removeBlankPagesFromPdf(outputFile);
                     record.setOutputFileType("PDF");
 
                 } else if ("MERGE_PDF".equals(conversionType)) {
@@ -439,6 +468,7 @@ public class ConversionOptionsActivity extends AppCompatActivity {
                         throw new Exception("No valid PDF pages could be merged from the selected files");
                     }
                     destPdf.close();
+                    DocumentUtils.removeBlankPagesFromPdf(outputFile);
                     record.setOutputFileType("PDF");
 
                 } else if ("SPLIT_PDF".equals(conversionType)) {
@@ -585,6 +615,7 @@ public class ConversionOptionsActivity extends AppCompatActivity {
                         doc.add(new Paragraph("(No code content found)").setFont(boldFont));
                     }
                     doc.close();
+                    DocumentUtils.removeBlankPagesFromPdf(outputFile);
                     record.setOutputFileType("PDF");
 
                 } else if ("TXT_TO_PDF".equals(conversionType)) {
@@ -623,6 +654,7 @@ public class ConversionOptionsActivity extends AppCompatActivity {
                         doc.add(new Paragraph("(Empty text document)"));
                     }
                     doc.close();
+                    DocumentUtils.removeBlankPagesFromPdf(outputFile);
                     record.setOutputFileType("PDF");
 
                 } else if ("PDF_TO_IMAGES".equals(conversionType)) {
