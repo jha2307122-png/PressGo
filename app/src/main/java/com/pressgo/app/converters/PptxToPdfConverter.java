@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -90,7 +91,12 @@ public final class PptxToPdfConverter {
      */
     public static void convertPptxBytesToPdf(byte[] inputBytes, String originalFileName, File outputFile) throws Exception {
         if (isZipArchive(inputBytes)) {
-            convertPptx(inputBytes, originalFileName, outputFile);
+            try {
+                convertPptx(inputBytes, originalFileName, outputFile);
+            } catch (Exception pptxEx) {
+                Log.w(TAG, "PPTX conversion encountered error, falling back to slide text extractor: " + pptxEx.getMessage());
+                convertLegacyPpt(inputBytes, originalFileName, outputFile);
+            }
         } else {
             convertLegacyPpt(inputBytes, originalFileName, outputFile);
         }
@@ -110,7 +116,7 @@ public final class PptxToPdfConverter {
                 try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(bytes))) {
                     ZipEntry entry;
                     while ((entry = zis.getNextEntry()) != null) {
-                        String name = entry.getName();
+                        String name = entry.getName().replace('\\', '/').replaceAll("^/+", "");
                         if (name.startsWith("ppt/slides/slide") && name.endsWith(".xml") && !name.contains("_rels")) {
                             count++;
                         }
@@ -161,20 +167,21 @@ public final class PptxToPdfConverter {
         DocumentBuilder db = dbf.newDocumentBuilder();
 
         int totalSlides = slidePaths.size();
+        int renderedSlides = 0;
 
         for (int slideIndex = 0; slideIndex < totalSlides; slideIndex++) {
-            if (slideIndex > 0) {
+            String slidePath = slidePaths.get(slideIndex);
+            byte[] slideXmlBytes = findZipEntry(entries, slidePath);
+            if (slideXmlBytes == null) continue;
+
+            if (renderedSlides > 0) {
                 document.add(new AreaBreak(AreaBreakType.NEXT_PAGE));
             }
-
-            String slidePath = slidePaths.get(slideIndex);
-            byte[] slideXmlBytes = entries.get(slidePath);
-            if (slideXmlBytes == null) continue;
 
             // Load slide relationships (for images)
             String relsPath = getSlideRelsPath(slidePath);
             Map<String, String> slideRels = new HashMap<>();
-            byte[] relsBytes = entries.get(relsPath);
+            byte[] relsBytes = findZipEntry(entries, relsPath);
             if (relsBytes != null) {
                 parseRelationships(relsBytes, slideRels);
             }
@@ -202,7 +209,7 @@ public final class PptxToPdfConverter {
             // 1. Render Top Header Banner (Slide Number & Deck Name)
             Table headerTable = new Table(UnitValue.createPercentArray(new float[]{1f, 1f}));
             headerTable.setWidth(UnitValue.createPercentValue(100));
-            headerTable.setMarginBottom(10f);
+            headerTable.setMarginBottom(6f);
 
             Cell leftHeader = new Cell()
                     .setBorder(null)
@@ -229,10 +236,10 @@ public final class PptxToPdfConverter {
             // 2. Render Slide Title
             if (slideData.title != null && !slideData.title.trim().isEmpty()) {
                 Paragraph titlePara = new Paragraph(slideData.title.trim())
-                        .setFontSize(20f)
+                        .setFontSize(18f)
                         .setBold()
                         .setFontColor(new DeviceRgb(30, 41, 59))
-                        .setMarginBottom(4f);
+                        .setMarginBottom(3f);
                 document.add(titlePara);
 
                 // Accent line below title
@@ -243,42 +250,46 @@ public final class PptxToPdfConverter {
                         .setBorder(null)
                         .setBackgroundColor(new DeviceRgb(210, 71, 38));
                 accentLine.addCell(lineCell);
-                accentLine.setMarginBottom(12f);
+                accentLine.setMarginBottom(8f);
                 document.add(accentLine);
             } else if (slideIndex == 0) {
                 // First slide fallback title
                 Paragraph titlePara = new Paragraph(presentationTitle)
-                        .setFontSize(22f)
+                        .setFontSize(20f)
                         .setBold()
                         .setFontColor(new DeviceRgb(30, 41, 59))
-                        .setMarginBottom(12f);
+                        .setMarginBottom(8f);
                 document.add(titlePara);
             }
 
             // 3. Render Subtitle if present
             if (slideData.subtitle != null && !slideData.subtitle.trim().isEmpty()) {
                 Paragraph subPara = new Paragraph(slideData.subtitle.trim())
-                        .setFontSize(13f)
+                        .setFontSize(12f)
                         .setItalic()
                         .setFontColor(new DeviceRgb(100, 116, 139))
-                        .setMarginBottom(10f);
+                        .setMarginBottom(6f);
                 document.add(subPara);
             }
 
-            // 4. Render Slide Content Paragraphs & Bullets
+            // 4. Render Slide Content Paragraphs & Bullets with responsive height fitting
+            int paraCount = slideData.paragraphs.size();
+            float bulletFontSize = paraCount > 7 ? 9.5f : (paraCount > 4 ? 10.5f : 12f);
+            float bulletMarginBottom = paraCount > 7 ? 2f : (paraCount > 4 ? 3.5f : 5f);
+
             for (SlideParagraph sp : slideData.paragraphs) {
                 Paragraph p = new Paragraph();
 
                 // Bullet styling based on hierarchy level
                 if (sp.level == 0) {
                     p.add(new Text("•  ").setBold().setFontColor(new DeviceRgb(210, 71, 38)));
-                    p.setFontSize(12f).setMarginLeft(8f).setMarginBottom(5f);
+                    p.setFontSize(bulletFontSize).setMarginLeft(8f).setMarginBottom(bulletMarginBottom);
                 } else if (sp.level == 1) {
                     p.add(new Text("  ○  ").setFontColor(new DeviceRgb(100, 116, 139)));
-                    p.setFontSize(11f).setMarginLeft(24f).setMarginBottom(4f);
+                    p.setFontSize(bulletFontSize - 0.5f).setMarginLeft(22f).setMarginBottom(bulletMarginBottom);
                 } else {
                     p.add(new Text("    ▪  ").setFontColor(new DeviceRgb(148, 163, 184)));
-                    p.setFontSize(10f).setMarginLeft(38f).setMarginBottom(3f);
+                    p.setFontSize(bulletFontSize - 1.0f).setMarginLeft(34f).setMarginBottom(bulletMarginBottom);
                 }
 
                 for (SlideRun sr : sp.runs) {
@@ -300,20 +311,20 @@ public final class PptxToPdfConverter {
                 }
             }
 
-            // 6. Render Slide Images
+            // 6. Render Slide Images (constrained to remaining printable height to prevent spill)
             boolean isVisualSlide = slideData.paragraphs.isEmpty() && slideData.tables.isEmpty();
             for (byte[] imgBytes : slideData.images) {
                 try {
                     ImageData imgData = ImageDataFactory.create(imgBytes);
                     Image img = new Image(imgData);
                     img.setHorizontalAlignment(HorizontalAlignment.CENTER);
-                    img.setMarginTop(8f);
-                    img.setMarginBottom(8f);
+                    img.setMargins(4f, 0f, 4f, 0f);
 
-                    float maxImgW = isVisualSlide ? printableWidth : (printableWidth * 0.9f);
+                    float maxImgW = isVisualSlide ? printableWidth : (printableWidth * 0.88f);
+                    float usedHeight = 85f + (paraCount * (bulletFontSize + 7f)) + (slideData.tables.isEmpty() ? 0 : 70f) + 25f;
                     float maxImgH = isVisualSlide
-                            ? Math.max(260f, printableHeight - (slideData.title != null ? 80f : 20f))
-                            : Math.max(180f, printableHeight - (slideData.paragraphs.size() * 24f) - 100f);
+                            ? Math.max(160f, printableHeight - (slideData.title != null ? 80f : 30f) - 30f)
+                            : Math.max(80f, printableHeight - usedHeight);
 
                     float imgW = img.getImageWidth();
                     float imgH = img.getImageHeight();
@@ -331,14 +342,19 @@ public final class PptxToPdfConverter {
 
             // 7. Bottom Slide Footer
             Paragraph footer = new Paragraph(String.format(Locale.US, "Slide %d of %d  •  PressGo Campus Document Engine", slideIndex + 1, totalSlides))
-                    .setFontSize(8f)
+                    .setFontSize(7.5f)
                     .setFontColor(new DeviceRgb(148, 163, 184))
                     .setTextAlignment(TextAlignment.CENTER)
-                    .setMarginTop(14f);
+                    .setMarginTop(6f);
             document.add(footer);
+
+            renderedSlides++;
         }
 
         document.close();
+
+        // Clean any stray blank pages
+        DocumentUtils.removeBlankPagesFromPdf(outputFile);
     }
 
     private static Table renderSlideTable(SlideTable st, float printableWidth) {
@@ -576,8 +592,8 @@ public final class PptxToPdfConverter {
         List<String> list = new ArrayList<>();
 
         // Check ppt/presentation.xml and ppt/_rels/presentation.xml.rels
-        byte[] presRelsBytes = entries.get("ppt/_rels/presentation.xml.rels");
-        byte[] presXmlBytes = entries.get("ppt/presentation.xml");
+        byte[] presRelsBytes = findZipEntry(entries, "ppt/_rels/presentation.xml.rels");
+        byte[] presXmlBytes = findZipEntry(entries, "ppt/presentation.xml");
 
         if (presRelsBytes != null && presXmlBytes != null) {
             Map<String, String> rIdToTarget = new HashMap<>();
@@ -732,6 +748,9 @@ public final class PptxToPdfConverter {
         }
 
         document.close();
+
+        // Clean any stray blank pages
+        DocumentUtils.removeBlankPagesFromPdf(outputFile);
     }
 
     private static List<String> extractTextRunsFromBinaryPpt(byte[] bytes) {
@@ -775,12 +794,22 @@ public final class PptxToPdfConverter {
     }
 
     private static byte[] readAllBytes(Context context, Uri uri) throws Exception {
-        try (InputStream is = context.getContentResolver().openInputStream(uri);
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            if (is == null) return null;
+        InputStream is = null;
+        try {
+            is = context.getContentResolver().openInputStream(uri);
+        } catch (Exception e) {
+            if (uri.getPath() != null) {
+                File f = new File(uri.getPath());
+                if (f.exists()) {
+                    is = new FileInputStream(f);
+                }
+            }
+        }
+        if (is == null) return null;
+        try (InputStream input = is; ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             byte[] buf = new byte[8192];
             int n;
-            while ((n = is.read(buf)) != -1) {
+            while ((n = input.read(buf)) != -1) {
                 baos.write(buf, 0, n);
             }
             return baos.toByteArray();
@@ -799,7 +828,13 @@ public final class PptxToPdfConverter {
                     while ((read = zis.read(buffer)) != -1) {
                         baos.write(buffer, 0, read);
                     }
-                    map.put(entry.getName(), baos.toByteArray());
+                    byte[] data = baos.toByteArray();
+                    String rawName = entry.getName();
+                    String cleanName = rawName.replace('\\', '/').replaceAll("^/+", "");
+                    map.put(cleanName, data);
+                    if (!cleanName.equals(cleanName.toLowerCase(Locale.US))) {
+                        map.put(cleanName.toLowerCase(Locale.US), data);
+                    }
                 }
                 zis.closeEntry();
             }

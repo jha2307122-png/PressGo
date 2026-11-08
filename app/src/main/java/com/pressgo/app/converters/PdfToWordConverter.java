@@ -450,13 +450,7 @@ public final class PdfToWordConverter {
 
         for (int pIdx = 0; pIdx < pages.size(); pIdx++) {
             PageContent pc = pages.get(pIdx);
-
-            // Page break between pages (except before page 1)
-            if (pIdx > 0) {
-                sb.append("    <w:p>\n")
-                  .append("      <w:r><w:br w:type=\"page\"/></w:r>\n")
-                  .append("    </w:p>\n");
-            }
+            boolean pageBreakNeeded = (pIdx > 0);
 
             String[] lines = pc.text.split("\r?\n");
             boolean pageHasText = false;
@@ -471,8 +465,12 @@ public final class PdfToWordConverter {
                 boolean isHeading = isLikelyHeading(line, i == 0);
                 if (isHeading) {
                     sb.append("    <w:p>\n")
-                      .append("      <w:pPr>\n")
-                      .append("        <w:spacing w:before=\"240\" w:after=\"120\"/>\n")
+                      .append("      <w:pPr>\n");
+                    if (pageBreakNeeded) {
+                        sb.append("        <w:pageBreakBefore/>\n");
+                        pageBreakNeeded = false;
+                    }
+                    sb.append("        <w:spacing w:before=\"240\" w:after=\"120\"/>\n")
                       .append("      </w:pPr>\n")
                       .append("      <w:r>\n")
                       .append("        <w:rPr>\n")
@@ -490,16 +488,22 @@ public final class PdfToWordConverter {
 
             // Output Page Images (DrawingML inline pictures)
             for (ExtractedImage img : pc.images) {
-                appendDrawingImage(sb, img, inlineDocPrId++);
+                appendDrawingImage(sb, img, inlineDocPrId++, pageBreakNeeded);
+                pageBreakNeeded = false;
             }
 
             // Output Remaining Paragraphs and Bullet Points
+            int consecutiveEmptyLines = 0;
             for (int i = firstParagraphIndex; i < lines.length; i++) {
                 String line = lines[i].trim();
                 if (line.isEmpty()) {
-                    sb.append("    <w:p><w:pPr><w:spacing w:after=\"100\"/></w:pPr><w:r><w:t></w:t></w:r></w:p>\n");
+                    consecutiveEmptyLines++;
+                    if (consecutiveEmptyLines <= 1 && !pageBreakNeeded) {
+                        sb.append("    <w:p><w:pPr><w:spacing w:after=\"80\"/></w:pPr><w:r><w:t></w:t></w:r></w:p>\n");
+                    }
                     continue;
                 }
+                consecutiveEmptyLines = 0;
 
                 pageHasText = true;
                 boolean isHeading = isLikelyHeading(line, false);
@@ -507,8 +511,12 @@ public final class PdfToWordConverter {
 
                 if (isHeading) {
                     sb.append("    <w:p>\n")
-                      .append("      <w:pPr>\n")
-                      .append("        <w:spacing w:before=\"240\" w:after=\"120\"/>\n")
+                      .append("      <w:pPr>\n");
+                    if (pageBreakNeeded) {
+                        sb.append("        <w:pageBreakBefore/>\n");
+                        pageBreakNeeded = false;
+                    }
+                    sb.append("        <w:spacing w:before=\"240\" w:after=\"120\"/>\n")
                       .append("      </w:pPr>\n")
                       .append("      <w:r>\n")
                       .append("        <w:rPr>\n")
@@ -522,8 +530,12 @@ public final class PdfToWordConverter {
                 } else if (isBullet) {
                     String cleanContent = cleanBulletContent(line);
                     sb.append("    <w:p>\n")
-                      .append("      <w:pPr>\n")
-                      .append("        <w:ind w:left=\"720\"/>\n")
+                      .append("      <w:pPr>\n");
+                    if (pageBreakNeeded) {
+                        sb.append("        <w:pageBreakBefore/>\n");
+                        pageBreakNeeded = false;
+                    }
+                    sb.append("        <w:ind w:left=\"720\"/>\n")
                       .append("        <w:spacing w:after=\"100\"/>\n")
                       .append("      </w:pPr>\n")
                       .append("      <w:r>\n")
@@ -543,8 +555,12 @@ public final class PdfToWordConverter {
                       .append("    </w:p>\n");
                 } else {
                     sb.append("    <w:p>\n")
-                      .append("      <w:pPr>\n")
-                      .append("        <w:spacing w:after=\"120\"/>\n")
+                      .append("      <w:pPr>\n");
+                    if (pageBreakNeeded) {
+                        sb.append("        <w:pageBreakBefore/>\n");
+                        pageBreakNeeded = false;
+                    }
+                    sb.append("        <w:spacing w:after=\"120\"/>\n")
                       .append("      </w:pPr>\n")
                       .append("      <w:r>\n")
                       .append("        <w:rPr>\n")
@@ -559,7 +575,13 @@ public final class PdfToWordConverter {
 
             if (!pageHasText && pc.images.isEmpty()) {
                 sb.append("    <w:p>\n")
-                  .append("      <w:pPr><w:jc w:val=\"center\"/></w:pPr>\n")
+                  .append("      <w:pPr>\n");
+                if (pageBreakNeeded) {
+                    sb.append("        <w:pageBreakBefore/>\n");
+                    pageBreakNeeded = false;
+                }
+                sb.append("        <w:jc w:val=\"center\"/>\n")
+                  .append("      </w:pPr>\n")
                   .append("      <w:r>\n")
                   .append("        <w:rPr><w:i/><w:color w:val=\"94A3B8\"/></w:rPr>\n")
                   .append("        <w:t xml:space=\"preserve\">(Page ").append(pc.pageNumber).append(")</w:t>\n")
@@ -582,7 +604,7 @@ public final class PdfToWordConverter {
     /**
      * Appends an OpenXML DrawingML inline picture shape into document.xml.
      */
-    private static void appendDrawingImage(StringBuilder sb, ExtractedImage img, int docPrId) {
+    private static void appendDrawingImage(StringBuilder sb, ExtractedImage img, int docPrId, boolean pageBreakBefore) {
         long rawW = Math.max(1L, (long) img.width * EMU_PER_PIXEL);
         long rawH = Math.max(1L, (long) img.height * EMU_PER_PIXEL);
 
@@ -598,8 +620,11 @@ public final class PdfToWordConverter {
         cy = Math.max(1000L, Math.round(cy * scale));
 
         sb.append("    <w:p>\n")
-          .append("      <w:pPr>\n")
-          .append("        <w:jc w:val=\"center\"/>\n")
+          .append("      <w:pPr>\n");
+        if (pageBreakBefore) {
+            sb.append("        <w:pageBreakBefore/>\n");
+        }
+        sb.append("        <w:jc w:val=\"center\"/>\n")
           .append("        <w:spacing w:before=\"140\" w:after=\"140\"/>\n")
           .append("      </w:pPr>\n")
           .append("      <w:r>\n")
