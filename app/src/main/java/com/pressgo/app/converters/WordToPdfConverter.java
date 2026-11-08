@@ -32,6 +32,7 @@ import org.w3c.dom.NodeList;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -86,7 +87,12 @@ public final class WordToPdfConverter {
      */
     public static void convertWordBytesToPdf(byte[] inputBytes, String originalFileName, File outputFile) throws Exception {
         if (isZipArchive(inputBytes)) {
-            convertDocx(inputBytes, originalFileName, outputFile);
+            try {
+                convertDocx(inputBytes, originalFileName, outputFile);
+            } catch (Exception docxEx) {
+                Log.w(TAG, "DOCX structure parse failed, falling back to text extractor: " + docxEx.getMessage());
+                convertLegacyOrRtfDoc(inputBytes, originalFileName, outputFile);
+            }
         } else {
             convertLegacyOrRtfDoc(inputBytes, originalFileName, outputFile);
         }
@@ -139,14 +145,14 @@ public final class WordToPdfConverter {
     private static void convertDocx(byte[] docxBytes, String originalFileName, File outputFile) throws Exception {
         Map<String, byte[]> entries = extractAllZipEntries(docxBytes);
 
-        byte[] documentXmlBytes = entries.get("word/document.xml");
+        byte[] documentXmlBytes = findZipEntry(entries, "word/document.xml");
         if (documentXmlBytes == null) {
             throw new Exception("Invalid DOCX format: word/document.xml was not found in archive");
         }
 
         // Parse relationships to map rId to image files
         Map<String, String> relsMap = new HashMap<>();
-        byte[] relsBytes = entries.get("word/_rels/document.xml.rels");
+        byte[] relsBytes = findZipEntry(entries, "word/_rels/document.xml.rels");
         if (relsBytes != null) {
             parseRelationships(relsBytes, relsMap);
         }
@@ -184,6 +190,7 @@ public final class WordToPdfConverter {
 
         NodeList children = body.getChildNodes();
         int elementsAdded = 0;
+        int consecutiveEmptyParagraphs = 0;
 
         for (int i = 0; i < children.getLength(); i++) {
             Node child = children.item(i);
@@ -191,14 +198,20 @@ public final class WordToPdfConverter {
 
             if (isTag(child, "p")) {
                 Element pElem = (Element) child;
-                boolean added = processParagraph(pElem, document, relsMap, entries, printableWidth);
-                if (added) elementsAdded++;
+                boolean added = processParagraph(pElem, document, relsMap, entries, printableWidth, consecutiveEmptyParagraphs);
+                if (added) {
+                    elementsAdded++;
+                    consecutiveEmptyParagraphs = 0;
+                } else {
+                    consecutiveEmptyParagraphs++;
+                }
             } else if (isTag(child, "tbl")) {
                 Element tblElem = (Element) child;
                 Table table = processTable(tblElem, relsMap, entries, printableWidth);
                 if (table != null) {
                     document.add(table);
                     elementsAdded++;
+                    consecutiveEmptyParagraphs = 0;
                 }
             } else if (isTag(child, "sdt")) {
                 // Structured Document Tag - process internal paragraphs and tables
@@ -208,14 +221,18 @@ public final class WordToPdfConverter {
                     for (int j = 0; j < sdtChildren.getLength(); j++) {
                         Node sdtChild = sdtChildren.item(j);
                         if (isTag(sdtChild, "p")) {
-                            if (processParagraph((Element) sdtChild, document, relsMap, entries, printableWidth)) {
+                            if (processParagraph((Element) sdtChild, document, relsMap, entries, printableWidth, consecutiveEmptyParagraphs)) {
                                 elementsAdded++;
+                                consecutiveEmptyParagraphs = 0;
+                            } else {
+                                consecutiveEmptyParagraphs++;
                             }
                         } else if (isTag(sdtChild, "tbl")) {
                             Table table = processTable((Element) sdtChild, relsMap, entries, printableWidth);
                             if (table != null) {
                                 document.add(table);
                                 elementsAdded++;
+                                consecutiveEmptyParagraphs = 0;
                             }
                         }
                     }
@@ -229,13 +246,18 @@ public final class WordToPdfConverter {
         }
 
         document.close();
+
+        // Remove any unintentional blank pages caused by page breaks or empty paragraphs
+        DocumentUtils.removeBlankPagesFromPdf(outputFile);
     }
 
     private static boolean processParagraph(Element pElem, Document document,
                                             Map<String, String> relsMap,
                                             Map<String, byte[]> entries,
-                                            float printableWidth) {
+                                            float printableWidth,
+                                            int consecutiveEmptyParagraphs) {
         Paragraph p = new Paragraph();
+        boolean hasPageBreak = false;
 
         // Check paragraph properties
         Element pPr = findFirstChild(pElem, "pPr");
@@ -244,6 +266,13 @@ public final class WordToPdfConverter {
         boolean isTitle = false;
 
         if (pPr != null) {
+            // Check pageBreakBefore
+            Element pageBreakBefore = findFirstChild(pPr, "pageBreakBefore");
+            if (pageBreakBefore != null) {
+                document.add(new AreaBreak(AreaBreakType.NEXT_PAGE));
+                hasPageBreak = true;
+            }
+
             // Check style (Heading 1, Heading 2, Title, etc.)
             Element pStyle = findFirstChild(pPr, "pStyle");
             if (pStyle != null) {
@@ -313,6 +342,7 @@ public final class WordToPdfConverter {
                         hasContent = false;
                     }
                     document.add(img);
+                    hasContent = true;
                 }
 
                 // Check for page break in run
@@ -326,6 +356,7 @@ public final class WordToPdfConverter {
                             hasContent = false;
                         }
                         document.add(new AreaBreak(AreaBreakType.NEXT_PAGE));
+                        hasPageBreak = true;
                     } else {
                         p.add(new Text("\n"));
                     }
@@ -361,6 +392,7 @@ public final class WordToPdfConverter {
                         hasContent = false;
                     }
                     document.add(img);
+                    hasContent = true;
                 }
             }
         }
@@ -368,11 +400,12 @@ public final class WordToPdfConverter {
         if (hasContent) {
             document.add(p);
             return true;
-        } else {
-            // Empty paragraph adds slight vertical whitespace
-            document.add(new Paragraph(" ").setFontSize(6f).setMargin(0));
+        } else if (!hasPageBreak && consecutiveEmptyParagraphs < 1) {
+            // Only add subtle spacing if there wasn't an explicit page break and not consecutive empty paragraphs
+            document.add(new Paragraph(" ").setFontSize(4f).setMargin(0));
             return false;
         }
+        return false;
     }
 
     private static Text processRun(Element rElem) {
@@ -699,6 +732,9 @@ public final class WordToPdfConverter {
         }
 
         document.close();
+
+        // Clean any stray blank pages
+        DocumentUtils.removeBlankPagesFromPdf(outputFile);
     }
 
     private static List<String> extractTextRunsFromBinaryOrRtf(byte[] bytes) {
@@ -760,12 +796,22 @@ public final class WordToPdfConverter {
     }
 
     private static byte[] readAllBytes(Context context, Uri uri) throws Exception {
-        try (InputStream is = context.getContentResolver().openInputStream(uri);
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            if (is == null) return null;
+        InputStream is = null;
+        try {
+            is = context.getContentResolver().openInputStream(uri);
+        } catch (Exception e) {
+            if (uri.getPath() != null) {
+                File f = new File(uri.getPath());
+                if (f.exists()) {
+                    is = new FileInputStream(f);
+                }
+            }
+        }
+        if (is == null) return null;
+        try (InputStream input = is; ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             byte[] buf = new byte[8192];
             int n;
-            while ((n = is.read(buf)) != -1) {
+            while ((n = input.read(buf)) != -1) {
                 baos.write(buf, 0, n);
             }
             return baos.toByteArray();
@@ -784,7 +830,13 @@ public final class WordToPdfConverter {
                     while ((read = zis.read(buffer)) != -1) {
                         baos.write(buffer, 0, read);
                     }
-                    map.put(entry.getName(), baos.toByteArray());
+                    byte[] data = baos.toByteArray();
+                    String rawName = entry.getName();
+                    String cleanName = rawName.replace('\\', '/').replaceAll("^/+", "");
+                    map.put(cleanName, data);
+                    if (!cleanName.equals(cleanName.toLowerCase(Locale.US))) {
+                        map.put(cleanName.toLowerCase(Locale.US), data);
+                    }
                 }
                 zis.closeEntry();
             }
@@ -793,11 +845,13 @@ public final class WordToPdfConverter {
     }
 
     private static byte[] extractZipEntry(byte[] zipBytes, String targetPath) {
+        String cleanTarget = targetPath.replace('\\', '/').replaceAll("^/+", "");
         try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(zipBytes))) {
             ZipEntry entry;
             byte[] buffer = new byte[8192];
             while ((entry = zis.getNextEntry()) != null) {
-                if (entry.getName().equalsIgnoreCase(targetPath)) {
+                String cleanEntry = entry.getName().replace('\\', '/').replaceAll("^/+", "");
+                if (cleanEntry.equalsIgnoreCase(cleanTarget) || cleanEntry.endsWith("/" + cleanTarget)) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     int read;
                     while ((read = zis.read(buffer)) != -1) {

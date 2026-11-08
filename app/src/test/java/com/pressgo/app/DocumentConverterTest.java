@@ -286,6 +286,76 @@ public class DocumentConverterTest {
         Assert.assertTrue("Generated PPTX must contain slide rels linking media", hasSlideRels);
     }
 
+    @Test
+    public void testRemoveBlankPagesFromPdf() throws Exception {
+        // Create a PDF with 3 pages: Page 1 with content, Page 2 completely blank, Page 3 with content
+        File testPdf = new File(tempDir, "pdf_with_blank_page.pdf");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        com.itextpdf.kernel.pdf.PdfWriter writer = new com.itextpdf.kernel.pdf.PdfWriter(new java.io.FileOutputStream(testPdf));
+        com.itextpdf.kernel.pdf.PdfDocument pdfDoc = new com.itextpdf.kernel.pdf.PdfDocument(writer);
+        com.itextpdf.layout.Document doc = new com.itextpdf.layout.Document(pdfDoc);
+
+        // Page 1
+        doc.add(new com.itextpdf.layout.element.Paragraph("Page 1 Content: Introduction"));
+
+        // Page 2: Blank page
+        doc.add(new com.itextpdf.layout.element.AreaBreak(com.itextpdf.layout.properties.AreaBreakType.NEXT_PAGE));
+
+        // Page 3: Content
+        doc.add(new com.itextpdf.layout.element.AreaBreak(com.itextpdf.layout.properties.AreaBreakType.NEXT_PAGE));
+        doc.add(new com.itextpdf.layout.element.Paragraph("Page 3 Content: Conclusion"));
+
+        doc.close();
+
+        // Verify initial page count is 3
+        com.itextpdf.kernel.pdf.PdfDocument verifyDoc = new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(testPdf));
+        Assert.assertEquals("Initially PDF should have 3 pages", 3, verifyDoc.getNumberOfPages());
+        verifyDoc.close();
+
+        // Run blank page cleaner
+        com.pressgo.app.utils.DocumentUtils.removeBlankPagesFromPdf(testPdf);
+
+        // Verify cleaned page count is 2 (the middle blank page was cleanly removed!)
+        com.itextpdf.kernel.pdf.PdfDocument cleanedDoc = new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(testPdf));
+        Assert.assertEquals("After cleaning, PDF should have exactly 2 non-blank pages", 2, cleanedDoc.getNumberOfPages());
+
+        String p1Text = com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(cleanedDoc.getPage(1));
+        String p2Text = com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(cleanedDoc.getPage(2));
+        Assert.assertTrue("Page 1 must contain Introduction", p1Text.contains("Introduction"));
+        Assert.assertTrue("Page 2 must contain Conclusion", p2Text.contains("Conclusion"));
+        cleanedDoc.close();
+    }
+
+    @Test
+    public void testPdfToWordUsesPageBreakBefore() throws Exception {
+        byte[] pdfBytes = createSamplePdf(false);
+        File outputFile = new File(tempDir, "output_pagebreak_test.docx");
+        PdfToWordConverter.convertPdfBytesToWord(pdfBytes, "test_doc.pdf", outputFile);
+
+        Assert.assertTrue("DOCX output file must exist", outputFile.exists());
+
+        String docXml = null;
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(outputFile))) {
+            ZipEntry ze;
+            while ((ze = zis.getNextEntry()) != null) {
+                if ("word/document.xml".equals(ze.getName())) {
+                    ByteArrayOutputStream sBaos = new ByteArrayOutputStream();
+                    byte[] buf = new byte[4096];
+                    int n;
+                    while ((n = zis.read(buf)) > 0) sBaos.write(buf, 0, n);
+                    docXml = new String(sBaos.toByteArray(), StandardCharsets.UTF_8);
+                }
+                zis.closeEntry();
+            }
+        }
+
+        Assert.assertNotNull("Must extract word/document.xml", docXml);
+        // Assert that <w:pageBreakBefore/> is used instead of standalone empty <w:p><w:r><w:br w:type="page"/></w:r></w:p>
+        Assert.assertTrue("DOCX should use <w:pageBreakBefore/> on headings/paragraphs", docXml.contains("<w:pageBreakBefore/>"));
+        Assert.assertFalse("DOCX should not contain empty standalone <w:br w:type=\"page\"/> paragraphs that create blank pages",
+                docXml.contains("<w:p>\n      <w:r><w:br w:type=\"page\"/></w:r>\n    </w:p>"));
+    }
+
     private byte[] createSamplePdf(boolean includeImage) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         com.itextpdf.kernel.pdf.PdfWriter writer = new com.itextpdf.kernel.pdf.PdfWriter(baos);
