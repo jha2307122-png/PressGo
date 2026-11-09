@@ -14,8 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.pressgo.app.adapters.OrderFileAdapter;
 import com.pressgo.app.databinding.ActivityOrderDetailsBinding;
 import com.pressgo.app.models.OrderFile;
+import com.pressgo.app.models.PickupAuthorization;
 import com.pressgo.app.models.PrintOrder;
 import com.pressgo.app.repositories.OrderRepository;
+import com.pressgo.app.repositories.PickupAuthorizationRepository;
 import com.pressgo.app.utils.Constants;
 import com.pressgo.app.utils.DateUtils;
 import com.pressgo.app.utils.FileDownloadUtils;
@@ -32,6 +34,7 @@ public class OrderDetailsActivity extends AppCompatActivity {
     private ActivityOrderDetailsBinding binding;
     private String orderId;
     private PrintOrder order;
+    private PickupAuthorization currentAuth;
     private final List<OrderFile> orderFiles = new ArrayList<>();
     private OrderFileAdapter fileAdapter;
 
@@ -121,6 +124,15 @@ public class OrderDetailsActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        binding.btnAuthorizePickupFriend.setOnClickListener(v -> openContactPickerForAuthorization());
+        binding.btnReShareAuth.setOnClickListener(v -> openContactPickerForAuthorization());
+    }
+
+    private void openContactPickerForAuthorization() {
+        Intent intent = new Intent(this, ContactPickerActivity.class);
+        intent.putExtra(Constants.EXTRA_ORDER_ID, orderId);
+        startActivity(intent);
     }
 
     private void loadOrderDetails() {
@@ -130,10 +142,49 @@ public class OrderDetailsActivity extends AppCompatActivity {
             order = o;
             populateUI(order);
             loadOrderFiles();
+            loadPickupAuthorization();
         }, e -> {
             binding.progressBar.setVisibility(View.GONE);
             Toast.makeText(this, "Failed to load order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            loadPickupAuthorization();
         });
+    }
+
+    private void loadPickupAuthorization() {
+        PickupAuthorizationRepository.getInstance().getAuthorizationByOrderId(orderId, auth -> {
+            currentAuth = auth;
+            populateAuthorizationUI();
+        }, e -> {
+            Log.e(TAG, "Failed to load pickup authorization for order " + orderId, e);
+            binding.cardCustomerPickupAuth.setVisibility(View.GONE);
+        });
+    }
+
+    private void populateAuthorizationUI() {
+        if (currentAuth == null) {
+            binding.cardCustomerPickupAuth.setVisibility(View.GONE);
+            binding.btnAuthorizePickupFriend.setText("Authorize Friend to Pick Up");
+            return;
+        }
+
+        binding.cardCustomerPickupAuth.setVisibility(View.VISIBLE);
+        String phoneStr = (currentAuth.getAuthorizedContactPhone() != null && !currentAuth.getAuthorizedContactPhone().isEmpty())
+                ? " (" + currentAuth.getAuthorizedContactPhone() + ")" : "";
+        binding.tvCustomerAuthDetails.setText("Authorized: " + currentAuth.getAuthorizedContactName() + phoneStr);
+
+        String status = currentAuth.getStatus();
+        binding.tvCustomerAuthBadge.setText(status);
+
+        if (PickupAuthorization.STATUS_VERIFIED.equals(status)) {
+            binding.tvCustomerAuthBadge.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_green);
+            binding.btnAuthorizePickupFriend.setText("Update Authorized Friend");
+        } else if (PickupAuthorization.STATUS_REJECTED.equals(status)) {
+            binding.tvCustomerAuthBadge.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_red);
+            binding.btnAuthorizePickupFriend.setText("Re-authorize Another Friend");
+        } else {
+            binding.tvCustomerAuthBadge.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_yellow);
+            binding.btnAuthorizePickupFriend.setText("Change Authorized Friend");
+        }
     }
 
     private void loadOrderFiles() {
@@ -206,6 +257,14 @@ public class OrderDetailsActivity extends AppCompatActivity {
         // Payment button visible only if unpaid
         boolean isUnpaid = !isPaid;
         binding.btnMakePayment.setVisibility(isUnpaid ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (orderId != null) {
+            loadOrderDetails();
+        }
     }
 
     @Override

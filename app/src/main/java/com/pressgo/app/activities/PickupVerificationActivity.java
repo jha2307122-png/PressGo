@@ -15,8 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 import com.pressgo.app.databinding.ActivityPickupVerificationBinding;
+import com.pressgo.app.models.PickupAuthorization;
 import com.pressgo.app.models.PrintOrder;
+import com.pressgo.app.repositories.NotificationRepository;
 import com.pressgo.app.repositories.OrderRepository;
+import com.pressgo.app.repositories.PickupAuthorizationRepository;
 import com.pressgo.app.utils.Constants;
 
 import java.util.Locale;
@@ -27,6 +30,7 @@ public class PickupVerificationActivity extends AppCompatActivity {
     private ActivityPickupVerificationBinding binding;
     private String orderId;
     private PrintOrder order;
+    private PickupAuthorization currentAuth;
 
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(
             new ScanContract(),
@@ -83,10 +87,114 @@ public class PickupVerificationActivity extends AppCompatActivity {
                 binding.tvResultStatus.setText("ORDER ALREADY COMPLETED");
                 binding.btnScanQr.setEnabled(false);
             }
+            loadPickupAuthorization(order.getId());
         }, e -> {
             binding.progressBar.setVisibility(View.GONE);
             Toast.makeText(this, "Failed to load order", Toast.LENGTH_SHORT).show();
+            loadPickupAuthorization(orderId);
         });
+    }
+
+    private void loadPickupAuthorization(String targetOrderId) {
+        if (targetOrderId == null) return;
+        PickupAuthorizationRepository.getInstance().getAuthorizationByOrderId(targetOrderId, auth -> {
+            currentAuth = auth;
+            populateCollectorUI();
+        }, e -> {
+            binding.cardAuthorizedCollector.setVisibility(View.GONE);
+        });
+    }
+
+    private void populateCollectorUI() {
+        if (currentAuth == null) {
+            binding.cardAuthorizedCollector.setVisibility(View.GONE);
+            return;
+        }
+
+        binding.cardAuthorizedCollector.setVisibility(View.VISIBLE);
+        binding.tvCollectorName.setText("Authorized Collector: " + currentAuth.getAuthorizedContactName());
+        binding.tvCollectorPhone.setText("Phone: " +
+                (currentAuth.getAuthorizedContactPhone() != null && !currentAuth.getAuthorizedContactPhone().isEmpty()
+                        ? currentAuth.getAuthorizedContactPhone() : "No phone provided"));
+
+        String status = currentAuth.getStatus();
+        binding.tvCollectorAuthBadge.setText(status);
+
+        if (PickupAuthorization.STATUS_VERIFIED.equals(status)) {
+            binding.tvCollectorAuthBadge.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_green);
+            binding.layoutCollectorButtons.setVisibility(View.GONE);
+        } else if (PickupAuthorization.STATUS_REJECTED.equals(status)) {
+            binding.tvCollectorAuthBadge.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_red);
+            binding.layoutCollectorButtons.setVisibility(View.GONE);
+        } else {
+            binding.tvCollectorAuthBadge.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_yellow);
+            binding.layoutCollectorButtons.setVisibility(View.VISIBLE);
+        }
+
+        binding.btnVerifyCollector.setOnClickListener(v -> verifyCollector());
+        binding.btnRejectCollector.setOnClickListener(v -> rejectCollector());
+    }
+
+    private void verifyCollector() {
+        if (currentAuth == null) return;
+        String adminUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "staff_admin";
+
+        binding.progressBar.setVisibility(View.VISIBLE);
+        PickupAuthorizationRepository.getInstance().updateAuthorizationStatus(
+                currentAuth.getAuthorizationId(),
+                PickupAuthorization.STATUS_VERIFIED,
+                adminUid,
+                "Collector verified at counter",
+                task -> {
+                    binding.progressBar.setVisibility(View.GONE);
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Collector VERIFIED successfully!", Toast.LENGTH_SHORT).show();
+                        showSuccessVerification("Collector " + currentAuth.getAuthorizedContactName() + " verified against campus ID.");
+                        loadPickupAuthorization(orderId != null ? orderId : currentAuth.getOrderId());
+                    } else {
+                        Toast.makeText(this, "Failed to verify collector", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+    }
+
+    private void rejectCollector() {
+        if (currentAuth == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Reject Collector Authorization");
+        final EditText input = new EditText(this);
+        input.setHint("Rejection reason (e.g. ID mismatch)");
+        builder.setView(input);
+        builder.setPositiveButton("Reject", (d, w) -> {
+            String inputReason = input.getText().toString().trim();
+            final String finalReason = inputReason.isEmpty() ? "Collector ID mismatch or invalid authorization" : inputReason;
+
+            String adminUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                    ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid()
+                    : "staff_admin";
+
+            binding.progressBar.setVisibility(View.VISIBLE);
+            PickupAuthorizationRepository.getInstance().updateAuthorizationStatus(
+                    currentAuth.getAuthorizationId(),
+                    PickupAuthorization.STATUS_REJECTED,
+                    adminUid,
+                    finalReason,
+                    task -> {
+                        binding.progressBar.setVisibility(View.GONE);
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Collector authorization REJECTED.", Toast.LENGTH_SHORT).show();
+                            showFailureVerification("Collector rejected: " + finalReason);
+                            loadPickupAuthorization(orderId != null ? orderId : currentAuth.getOrderId());
+                        } else {
+                            Toast.makeText(this, "Failed to update authorization", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            );
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void startBarcodeScan() {
@@ -166,6 +274,7 @@ public class PickupVerificationActivity extends AppCompatActivity {
         binding.tvOrderId.setText("Order #" + o.getId());
         binding.tvCustomer.setText("Customer: " + (o.getCustomerEmail() != null ? o.getCustomerEmail() : o.getCustomerId()));
         binding.tvStatus.setText("Status: " + o.getOrderStatus() + " • Payment: " + o.getPaymentStatus());
+        loadPickupAuthorization(o.getId());
     }
 
     private void showOrderForHandover(PrintOrder o) {

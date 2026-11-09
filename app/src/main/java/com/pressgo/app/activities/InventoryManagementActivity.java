@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.pressgo.app.R;
 import com.pressgo.app.adapters.InventoryAdapter;
 import com.pressgo.app.databinding.ActivityInventoryManagementBinding;
+import com.pressgo.app.databinding.DialogAddInventoryBinding;
 import com.pressgo.app.models.InventoryItem;
 import com.pressgo.app.repositories.InventoryRepository;
 import com.pressgo.app.utils.SessionManager;
@@ -197,35 +198,32 @@ public class InventoryManagementActivity extends AppCompatActivity {
     }
 
     private void showAddItemDialog() {
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_inventory, null);
-        EditText etName = view.findViewById(R.id.etItemName);
-        Spinner spCategory = view.findViewById(R.id.spinnerCategory);
-        EditText etQty = view.findViewById(R.id.etItemQuantity);
-        EditText etUnit = view.findViewById(R.id.etItemUnit);
-        EditText etThreshold = view.findViewById(R.id.etItemThreshold);
+        DialogAddInventoryBinding dialogBinding = DialogAddInventoryBinding.inflate(LayoutInflater.from(this));
 
         String[] categories = {"PAPER", "INK", "TONER", "BINDING_MATERIAL", "OTHER"};
         ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
-        spCategory.setAdapter(catAdapter);
+        dialogBinding.spinnerCategory.setAdapter(catAdapter);
 
         new AlertDialog.Builder(this)
                 .setTitle("Add Inventory Item")
-                .setView(view)
+                .setView(dialogBinding.getRoot())
                 .setPositiveButton("Add", (dialog, which) -> {
-                    String name = etName.getText().toString().trim();
+                    String name = dialogBinding.etItemName.getText() != null
+                            ? dialogBinding.etItemName.getText().toString().trim() : "";
                     if (!name.isEmpty()) {
                         InventoryItem item = new InventoryItem();
                         item.setShopId(shopId);
                         item.setItemName(name);
-                        item.setCategory((String) spCategory.getSelectedItem());
+                        item.setCategory((String) dialogBinding.spinnerCategory.getSelectedItem());
                         try {
-                            item.setQuantity(Integer.parseInt(etQty.getText().toString().trim()));
+                            item.setQuantity(Integer.parseInt(dialogBinding.etItemQuantity.getText().toString().trim()));
                         } catch (Exception e) {
                             item.setQuantity(0);
                         }
-                        item.setUnit(etUnit.getText().toString().trim());
+                        item.setUnit(dialogBinding.etItemUnit.getText() != null
+                                ? dialogBinding.etItemUnit.getText().toString().trim() : "");
                         try {
-                            item.setLowStockThreshold(Integer.parseInt(etThreshold.getText().toString().trim()));
+                            item.setLowStockThreshold(Integer.parseInt(dialogBinding.etItemThreshold.getText().toString().trim()));
                         } catch (Exception e) {
                             item.setLowStockThreshold(5);
                         }

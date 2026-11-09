@@ -16,8 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.pressgo.app.adapters.OrderFileAdapter;
 import com.pressgo.app.databinding.ActivityAdminOrderDetailsBinding;
 import com.pressgo.app.models.OrderFile;
+import com.pressgo.app.models.PickupAuthorization;
 import com.pressgo.app.models.PrintOrder;
+import com.pressgo.app.repositories.NotificationRepository;
 import com.pressgo.app.repositories.OrderRepository;
+import com.pressgo.app.repositories.PickupAuthorizationRepository;
 import com.pressgo.app.utils.Constants;
 import com.pressgo.app.utils.DateUtils;
 import com.pressgo.app.utils.FileDownloadUtils;
@@ -34,6 +37,7 @@ public class AdminOrderDetailsActivity extends AppCompatActivity {
     private ActivityAdminOrderDetailsBinding binding;
     private String orderId;
     private PrintOrder order;
+    private PickupAuthorization currentAuth;
     private final List<OrderFile> orderFiles = new ArrayList<>();
     private OrderFileAdapter fileAdapter;
 
@@ -118,10 +122,143 @@ public class AdminOrderDetailsActivity extends AppCompatActivity {
             order = o;
             populateUI();
             loadOrderFiles();
+            loadPickupAuthorization();
         }, e -> {
             binding.progressBar.setVisibility(View.GONE);
             Toast.makeText(this, "Error loading order: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            loadPickupAuthorization();
         });
+    }
+
+    private void loadPickupAuthorization() {
+        PickupAuthorizationRepository.getInstance().getAuthorizationByOrderId(orderId, auth -> {
+            currentAuth = auth;
+            populateAuthorizationUI();
+        }, e -> {
+            Log.e(TAG, "Failed loading authorization for order: " + orderId, e);
+            binding.cardPickupAuthorization.setVisibility(View.GONE);
+        });
+    }
+
+    private void populateAuthorizationUI() {
+        if (currentAuth == null) {
+            binding.cardPickupAuthorization.setVisibility(View.GONE);
+            return;
+        }
+
+        binding.cardPickupAuthorization.setVisibility(View.VISIBLE);
+        binding.tvAdminAuthContactName.setText("Authorized Collector: " + currentAuth.getAuthorizedContactName());
+        binding.tvAdminAuthContactPhone.setText("Phone: " +
+                (currentAuth.getAuthorizedContactPhone() != null && !currentAuth.getAuthorizedContactPhone().isEmpty()
+                        ? currentAuth.getAuthorizedContactPhone() : "No phone provided"));
+
+        if (currentAuth.getCreatedAt() != null) {
+            binding.tvAdminAuthDate.setVisibility(View.VISIBLE);
+            binding.tvAdminAuthDate.setText("Authorized on: " + DateUtils.formatTimestamp(currentAuth.getCreatedAt()));
+        } else {
+            binding.tvAdminAuthDate.setVisibility(View.GONE);
+        }
+
+        binding.tvAdminAuthMessage.setText(currentAuth.getAuthorizationMessage());
+
+        String status = currentAuth.getStatus();
+        binding.tvAdminAuthStatus.setText(status);
+
+        if (PickupAuthorization.STATUS_VERIFIED.equals(status)) {
+            binding.tvAdminAuthStatus.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_green);
+            binding.layoutAuthActionButtons.setVisibility(View.GONE);
+        } else if (PickupAuthorization.STATUS_REJECTED.equals(status)) {
+            binding.tvAdminAuthStatus.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_red);
+            binding.layoutAuthActionButtons.setVisibility(View.GONE);
+        } else {
+            binding.tvAdminAuthStatus.setBackgroundResource(com.pressgo.app.R.drawable.bg_badge_yellow);
+            binding.layoutAuthActionButtons.setVisibility(View.VISIBLE);
+        }
+
+        binding.btnVerifyAuthorization.setOnClickListener(v -> verifyAuthorization());
+        binding.btnRejectAuthorization.setOnClickListener(v -> rejectAuthorization());
+    }
+
+    private void verifyAuthorization() {
+        if (currentAuth == null) return;
+        String adminUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "staff_admin";
+
+        binding.progressBar.setVisibility(View.VISIBLE);
+        PickupAuthorizationRepository.getInstance().updateAuthorizationStatus(
+                currentAuth.getAuthorizationId(),
+                PickupAuthorization.STATUS_VERIFIED,
+                adminUid,
+                "Verified by staff at counter",
+                task -> {
+                    binding.progressBar.setVisibility(View.GONE);
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Pickup authorization VERIFIED!", Toast.LENGTH_SHORT).show();
+                        sendCustomerAuthStatusNotification(orderId, currentAuth.getCustomerUid(),
+                                "Pickup Authorization Verified ✅",
+                                "Shop staff verified " + currentAuth.getAuthorizedContactName() + " to collect your order #" + orderId + ".");
+                        loadPickupAuthorization();
+                    } else {
+                        Toast.makeText(this, "Failed to verify authorization", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+    }
+
+    private void rejectAuthorization() {
+        if (currentAuth == null) return;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Reject Pickup Authorization");
+        final EditText input = new EditText(this);
+        input.setHint("Reason (e.g. ID did not match, unverified contact)");
+        builder.setView(input);
+        builder.setPositiveButton("Reject", (d, w) -> {
+            String inputReason = input.getText().toString().trim();
+            final String finalReason = inputReason.isEmpty() ? "Identification mismatch or authorization unverified" : inputReason;
+
+            String adminUid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null
+                    ? com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid()
+                    : "staff_admin";
+
+            binding.progressBar.setVisibility(View.VISIBLE);
+            PickupAuthorizationRepository.getInstance().updateAuthorizationStatus(
+                    currentAuth.getAuthorizationId(),
+                    PickupAuthorization.STATUS_REJECTED,
+                    adminUid,
+                    finalReason,
+                    task -> {
+                        binding.progressBar.setVisibility(View.GONE);
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this, "Pickup authorization REJECTED.", Toast.LENGTH_SHORT).show();
+                            sendCustomerAuthStatusNotification(orderId, currentAuth.getCustomerUid(),
+                                    "Pickup Authorization Rejected ❌",
+                                    "Pickup authorization for " + currentAuth.getAuthorizedContactName() + " on order #" + orderId + " was rejected: " + finalReason);
+                            loadPickupAuthorization();
+                        } else {
+                            Toast.makeText(this, "Failed to update authorization", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            );
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void sendCustomerAuthStatusNotification(String orderId, String customerUid, String title, String body) {
+        if (customerUid == null) return;
+        com.pressgo.app.models.Notification notif = new com.pressgo.app.models.Notification(
+                java.util.UUID.randomUUID().toString(),
+                customerUid,
+                orderId,
+                title,
+                body,
+                com.pressgo.app.models.Notification.TYPE_GENERAL,
+                false,
+                com.google.firebase.Timestamp.now(),
+                null
+        );
+        NotificationRepository.getInstance().createNotification(notif, null);
     }
 
     private void loadOrderFiles() {

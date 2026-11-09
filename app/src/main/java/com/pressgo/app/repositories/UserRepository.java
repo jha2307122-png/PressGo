@@ -202,7 +202,7 @@ public class UserRepository {
         }
         db.collection(COLLECTION_USERS)
                 .document(user.getUid())
-                .update(user.toMap())
+                .set(user.toMap(), com.google.firebase.firestore.SetOptions.merge())
                 .addOnCompleteListener(listener);
     }
 

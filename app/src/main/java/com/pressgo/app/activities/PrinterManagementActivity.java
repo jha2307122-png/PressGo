@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.pressgo.app.R;
 import com.pressgo.app.adapters.PrinterAdapter;
 import com.pressgo.app.databinding.ActivityPrinterManagementBinding;
+import com.pressgo.app.databinding.DialogPrinterLevelsBinding;
 import com.pressgo.app.models.Printer;
 import com.pressgo.app.repositories.PrinterRepository;
 import com.pressgo.app.utils.SessionManager;
@@ -209,22 +210,19 @@ public class PrinterManagementActivity extends AppCompatActivity {
     }
 
     private void showUpdateLevelsDialog(Printer printer) {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_printer_levels, null);
-        SeekBar sbPaper = dialogView.findViewById(R.id.sbPaper);
-        SeekBar sbInk = dialogView.findViewById(R.id.sbInk);
-        SeekBar sbToner = dialogView.findViewById(R.id.sbToner);
+        DialogPrinterLevelsBinding dialogBinding = DialogPrinterLevelsBinding.inflate(LayoutInflater.from(this));
 
-        sbPaper.setProgress(printer.getPaperLevel());
-        sbInk.setProgress(printer.getInkLevel());
-        sbToner.setProgress(printer.getTonerLevel());
+        dialogBinding.sbPaper.setProgress(printer.getPaperLevel());
+        dialogBinding.sbInk.setProgress(printer.getInkLevel());
+        dialogBinding.sbToner.setProgress(printer.getTonerLevel());
 
         new AlertDialog.Builder(this)
                 .setTitle("Update Supply Levels")
-                .setView(dialogView)
+                .setView(dialogBinding.getRoot())
                 .setPositiveButton("Save", (dialog, which) -> {
-                    int p = sbPaper.getProgress();
-                    int i = sbInk.getProgress();
-                    int t = sbToner.getProgress();
+                    int p = dialogBinding.sbPaper.getProgress();
+                    int i = dialogBinding.sbInk.getProgress();
+                    int t = dialogBinding.sbToner.getProgress();
                     PrinterRepository.getInstance().updatePrinterLevels(printer.getId(), p, i, t, task -> {
                         printer.setPaperLevel(p);
                         printer.setInkLevel(i);

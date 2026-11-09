@@ -89,6 +89,84 @@ public final class ImplicitIntentUtils {
     }
 
     /**
+     * Implicit Intent: Option A - WhatsApp Sharing.
+     * Uses ACTION_SEND with MIME type text/plain directed to WhatsApp if installed.
+     * Does not automatically send messages (user reviews and confirms send in WhatsApp).
+     */
+    public static void shareViaWhatsApp(Context context, String message) {
+        if (context == null || message == null) return;
+        try {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.setPackage("com.whatsapp");
+            intent.putExtra(Intent.EXTRA_TEXT, message);
+            context.startActivity(intent);
+        } catch (android.content.ActivityNotFoundException e1) {
+            // Check WhatsApp Business as alternative
+            try {
+                Intent bIntent = new Intent(Intent.ACTION_SEND);
+                bIntent.setType("text/plain");
+                bIntent.setPackage("com.whatsapp.w4b");
+                bIntent.putExtra(Intent.EXTRA_TEXT, message);
+                context.startActivity(bIntent);
+            } catch (android.content.ActivityNotFoundException e2) {
+                Toast.makeText(context, "WhatsApp is not installed. Opening app chooser instead.", Toast.LENGTH_SHORT).show();
+                sharePlainText(context, "Share Pickup Authorization via", message);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error sharing via WhatsApp", e);
+            sharePlainText(context, "Share Pickup Authorization via", message);
+        }
+    }
+
+    /**
+     * Implicit Intent: Option B - SMS Sharing.
+     * Uses ACTION_SENDTO with an sms: URI to prefill contact phone and message body.
+     * Lets the user review and send the SMS in their chosen SMS app without SEND_SMS permission.
+     */
+    public static void shareViaSms(Context context, String phoneNumber, String message) {
+        if (context == null || message == null) return;
+        try {
+            String cleanNumber = phoneNumber != null ? phoneNumber.replaceAll("[^0-9+]", "") : "";
+            Uri uri = Uri.parse("sms:" + Uri.encode(cleanNumber));
+            Intent intent = new Intent(Intent.ACTION_SENDTO, uri);
+            intent.putExtra("sms_body", message);
+            intent.putExtra(Intent.EXTRA_TEXT, message);
+            context.startActivity(intent);
+        } catch (android.content.ActivityNotFoundException e) {
+            Toast.makeText(context, "No SMS app found. Opening share sheet.", Toast.LENGTH_SHORT).show();
+            sharePlainText(context, "Share Pickup Authorization via", message);
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening SMS composer", e);
+            sharePlainText(context, "Share Pickup Authorization via", message);
+        }
+    }
+
+    /**
+     * Generates a professional pickup authorization message using actual customer,
+     * contact, and order details.
+     */
+    public static String buildPickupAuthorizationMessage(String contactName,
+                                                        String customerName,
+                                                        String orderId,
+                                                        String shopName) {
+        String cName = (contactName != null && !contactName.trim().isEmpty()) ? contactName.trim() : "Campus Peer";
+        String uName = (customerName != null && !customerName.trim().isEmpty()) ? customerName.trim() : "PressGo Customer";
+        String sName = (shopName != null && !shopName.trim().isEmpty()) ? shopName.trim() : "PressGo Campus Shop";
+        String oId   = (orderId != null && !orderId.trim().isEmpty()) ? orderId.trim() : "N/A";
+
+        return "Hello " + cName + ",\n\n" +
+                "I have authorized you to collect my printing order from PressGo.\n\n" +
+                "Order ID: " + oId + "\n" +
+                "Pickup Location: " + sName + "\n" +
+                "Customer: " + uName + "\n" +
+                "Pickup Authorization: Authorized by the customer.\n\n" +
+                "Please show this message and follow the shop's verification procedure when collecting the order.\n\n" +
+                "Thank you,\n" +
+                uName;
+    }
+
+    /**
      * Implicit Intent: Shares a local file (e.g., converted PDF or document) using FileProvider.
      */
     public static void shareFile(Context context, File file, String mimeType, String chooserTitle) {
