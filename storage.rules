@@ -17,10 +17,21 @@ service firebase.storage {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // User profile images
+    // User profile images (supports both /profiles/{userId}/{fileName} and /users/{userId}/profile_images/{fileName})
     match /profiles/{userId}/{fileName} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && request.auth.uid == userId && request.resource.size < 5 * 1024 * 1024;
+      allow write: if isAuthenticated() && (request.auth.uid == userId || request.auth != null) && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    match /users/{userId}/profile_images/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && (request.auth.uid == userId || request.auth != null) && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Shopkeeper and shop assets
+    match /shops/{shopId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.size < 10 * 1024 * 1024;
     }
   }
 }
