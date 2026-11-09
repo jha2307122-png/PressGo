@@ -24,6 +24,7 @@ public final class Constants {
     public static final String COLLECTION_REFUNDS             = "refunds";
     public static final String COLLECTION_CONVERSION_HISTORY  = "conversion_history";
     public static final String COLLECTION_COMPRESSION_HISTORY = "compression_history";
+    public static final String COLLECTION_PICKUP_AUTHORIZATIONS = "pickup_authorizations";
 
     // ─────────────────────────────────────────────────────────────────────────
     // Firebase Storage bucket paths
@@ -42,6 +43,7 @@ public final class Constants {
     public static final String EXTRA_USER_ID         = "extra_user_id";
     public static final String EXTRA_NOTIFICATION_ID = "extra_notification_id";
     public static final String EXTRA_CONVERSION_ID   = "extra_conversion_id";
+    public static final String EXTRA_AUTHORIZATION_ID = "extra_authorization_id";
 
     // ─────────────────────────────────────────────────────────────────────────
     // User roles
